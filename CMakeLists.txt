@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.4)
-project(osu-hydro Fortran)
+project(osu-hydro-pce Fortran)
 
 # default build type: Release
 if(NOT CMAKE_BUILD_TYPE)

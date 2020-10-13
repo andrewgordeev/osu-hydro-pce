@@ -1,5 +1,7 @@
 set(EOSGEN "${CMAKE_CURRENT_SOURCE_DIR}/eos.py")
 set(EOSFILE "${CMAKE_CURRENT_BINARY_DIR}/eos.dat")
+set(EOSGLUONGEN "${CMAKE_CURRENT_SOURCE_DIR}/eos-gluon.py")
+set(EOSGLUONFILE "${CMAKE_CURRENT_BINARY_DIR}/eos-gluon.dat")
 
 add_custom_command(OUTPUT ${EOSFILE}
   COMMAND ${EOSGEN} --write-bin ${EOSFILE}
@@ -8,4 +10,13 @@ add_custom_command(OUTPUT ${EOSFILE}
   )
 add_custom_target(eos ALL DEPENDS ${EOSFILE})
 
+
+add_custom_command(OUTPUT ${EOSGLUONFILE}
+  COMMAND ${EOSGLUONGEN} --write-bin ${EOSGLUONFILE}
+  VERBATIM WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+  DEPENDS ${EOSGLUONGEN}
+  )
+add_custom_target(eos-gluon ALL DEPENDS ${EOSGLUONFILE})
+
 install(FILES ${EOSFILE} DESTINATION share/${PROJECT_NAME})
+install(FILES ${EOSGLUONFILE} DESTINATION share/${PROJECT_NAME})

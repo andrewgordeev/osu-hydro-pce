@@ -71,8 +71,14 @@
       Double Precision T0
       Common /T0/ T0
 
+      Double Precision Time, Teq
+      Common /Time/ Time, Teq
+
       Integer LS
       Common /LS/ LS
+
+      Double Precision Tfinal
+      Common /Tfinal/ Tfinal
 
       Integer QNum, ArgIndex ! QNum is the total number of arguments, ArgIndex gives the index to the one currently reading
 
@@ -155,6 +161,10 @@
 
         If (varName=="initialpitensor") Initialpitensor=IResult ! initialization of pi tensor
 
+        If (varName=="teq") Teq=DResult
+        
+        If (varName=="tfinal") Tfinal=DResult
+        
       End Do ! ArgIndex
 
       End Subroutine
@@ -217,7 +227,7 @@
 ************************************************************************
       Subroutine getInitialR0(PU0,PU1,PU2,PU3,U0,U1,U2,U3,DX,DY,DZ,DT,
      &  DPc00,DPc01,DPc02,DPc33,DPc11,DPc22,DPc12,DDU0,DDU1,DDU2,
-     &  Temp,Temp0,SiLoc,DLnT,Time, NXPhy0,NYPhy0,NXPhy,NYPhy,
+     &  Temp,Temp0,SiLoc,DLnT, NXPhy0,NYPhy0,NXPhy,NYPhy,
      &  NX0,NX,NY0,NY,NZ0,NZ,Ed,Sd,PL,VCoefi)
 !     Purpose:
 !       Return a suitable initial (before the initialization of
@@ -274,13 +284,15 @@
       Common /PiRatio/ PiRatio ! should already be setuped in prepareInputFun function
 
       Double Precision D0U0,D0U1,D0U2,D1U0,D1U1,D1U2,D2U0,D2U1,D2U2
-      Double Precision CS,DT,DX,DY,DZ,Time,DU0,DU1,DU2
+      Double Precision CS,DT,DX,DY,DZ,Time,Teq,DU0,DU1,DU2
 
       double precision ViscousCTemp
 
       Integer regMethod
       Common /regMethod/ regMethod
 
+      common /Time/ Time, Teq
+      
       If (regMethod .eq. 1) Then
         DO 791 K=NZ0,NZ
         DO 791 J=NYPhy0,NYPhy
@@ -426,13 +438,13 @@
       Else ! use R0=12.0
         R0 = 12.0
       EndIf
-
+      
       End Subroutine
 !-----------------------------------------------------------------------
 
 
 ************************************************************************
-      Subroutine regulateBulkPi(regStr,Time,NX0,NY0,NZ0,NX,NY,NZ,
+      Subroutine regulateBulkPi(regStr,NX0,NY0,NZ0,NX,NY,NZ,
      &  NXPhy0,NXPhy,NYPhy0,NYPhy,
      &  Ed,PL,PPI,II,JJ)
 !     Purpose:
@@ -444,7 +456,8 @@
       Integer NX0,NY0,NZ0,NX,NY,NZ,NXPhy0,NXPhy,NYPhy0,NYPhy
       Integer I,J,K,II,JJ,regStr
 
-      Double Precision Time
+      Double Precision Time, Teq
+      common /Time/ Time, Teq
 
       Double Precision Ed(NX0:NX, NY0:NY, NZ0:NZ) !energy density
       Double Precision PL(NX0:NX, NY0:NY, NZ0:NZ) !local pressure
@@ -499,7 +512,7 @@
 !-----------------------------------------------------------------------------
 
 ************************************************************************
-      Subroutine regulatePi(regStr,Time,NX0,NY0,NZ0,NX,NY,NZ,
+      Subroutine regulatePi(regStr,NX0,NY0,NZ0,NX,NY,NZ,
      &  NXPhy0,NXPhy,NYPhy0,NYPhy,
      &  Ed,PL,PPI,
      &  Pi00,Pi01,Pi02,Pi11,Pi12,Pi22,Pi33,Vx,Vy,II,JJ)
@@ -512,7 +525,8 @@
       Integer NX0,NY0,NZ0,NX,NY,NZ,NXPhy0,NXPhy,NYPhy0,NYPhy
       Integer I,J,K,II,JJ,regStr
 
-      Double Precision Time
+      Double Precision Time, Teq
+      common /Time/ Time, Teq
 
       Double Precision Ed(NX0:NX, NY0:NY, NZ0:NZ) !energy density
       Double Precision PL(NX0:NX, NY0:NY, NZ0:NZ) !local pressure
@@ -646,7 +660,7 @@
 
 
 !*****************************************************************************
-      Subroutine regulateAllPi(NX0,NY0,NZ0,NX,NY,NZ,Ed,PL,U0,U1,U2,Time,
+      Subroutine regulateAllPi(NX0,NY0,NZ0,NX,NY,NZ,Ed,PL,U0,U1,U2,
      &  Pi00,Pi01,Pi02,Pi11,Pi12,Pi22,Pi33,
      &  NXPhy0,NXPhy,NYPhy0,NYPhy,ratio)
 
@@ -655,7 +669,8 @@
       Integer NX0,NY0,NZ0,NX,NY,NZ,NXPhy0,NXPhy,NYPhy0,NYPhy
       Double Precision ratio
 
-      Double Precision Time
+      Double Precision Time, Teq
+      common /Time/ Time, Teq
 
       Double Precision Ed(NX0:NX, NY0:NY, NZ0:NZ) !energy density
       Double Precision PL(NX0:NX, NY0:NY, NZ0:NZ) !local pressure
