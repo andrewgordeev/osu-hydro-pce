@@ -7,7 +7,7 @@
      &  PScT00,PScT01,PScT02,PScT33,
      &  PScT11,PScT12,PScT22,etaTtp0,etaTtp,PPI,PISc,XiTtP0,XiTtP,
      &  U0,U1,U2, PU0,PU1,PU2,SxyT,Stotal,StotalBv,StotalSv,
-     &  Ed,PL,Sd,Time,Temp0,Temp,T00,T01,T02,IAA,CofAA,PNEW,
+     &  Ed,PL,Sd,Temp0,Temp,T00,T01,T02,IAA,CofAA,PNEW,
      &  TEM0,ATEM0,EPS0,V10,V20,AEPS0,AV10,AV20,TFREEZ)
 
       Implicit Double Precision (A-H, O-Z)
@@ -116,12 +116,14 @@ C-------------------------------------------------------------------------------
       Integer InitialURead   ! specify if read in more profiles
       Common/LDInitial/ InitialURead
 
-      Double Precision Time
+      Double Precision Time, Teq
+      common /Time/ Time, Teq
 
       COMMON /IEin/ IEin     !  type of initialization  entropy/enrgy
 
-      double precision :: VisHRG, VisMin, VisSlope, VisCurv, VisBeta
-      common /VisShear/ VisHRG, VisMin, VisSlope, VisCurv, VisBeta
+      double precision :: VisT0, VisHRG, VisMin, VisSlope, VisCrv,
+     &                    VisBeta
+      common /VisShear/ VisT0, VisHRG, VisMin, VisSlope, VisCrv, VisBeta
 
       Double Precision SEOSL7, PEOSL7, TEOSL7
       External SEOSL7
@@ -156,6 +158,14 @@ C-------------------------------------------------------------------------------
 
       close(10)
 
+!!!!!!!!!!!!Andrew's test
+
+!      open(11, file='edtest.dat', status='replace',access='stream')
+!      write(11) Ed(NXPHY0:NXPhy, NYPhy0:NYPhy, NZ0)
+!      close(11)
+
+!!!!!!!!!!!!
+      
       ! convert to fm^-4, add small constant (for numerical stability?)
       Ed = Ed/HbarC + 1d-10
 
@@ -233,7 +243,7 @@ C-------------------------------------------------------------------------------
         ! initialize to Navier-Stokes
         call TransportPi6(Pi00,Pi01,Pi02,Pi33, Pi11,Pi12,Pi22,
      &  PPI,Ed,Sd,PL,Temp,Temp0,U0,U1,U2,PU0,PU1,PU2, DX,DY,DZ,DT,
-     &  NX0,NY0,NZ0, NX,NY,NZ, Time, NXPhy0,NYPhy0, NXPhy,NYPhy,
+     &  NX0,NY0,NZ0, NX,NY,NZ, NXPhy0,NYPhy0, NXPhy,NYPhy,
      &  VRelaxT,VRelaxT0)
       end if
 
@@ -246,7 +256,7 @@ C-------------------------------------------------------------------------------
      &  Pi00,Pi01,Pi02,Pi33,Pi11,Pi12,Pi22, PScT00,PScT01,PScT02,PScT33,
      &  PScT11,PScT12,PScT22,etaTtp0,etaTtp,  PPI,PISc, XiTtP0,XiTtP,
      &  U0,U1,U2, PU0,PU1,PU2,SxyT, Stotal,StotalBv,StotalSv,
-     &  Ed,PL,Sd,Temp0,Temp, T00,T01,T02, IAA,CofAA,Time,DX,DY,
+     &  Ed,PL,Sd,Temp0,Temp, T00,T01,T02, IAA,CofAA,DX,DY,
      &  DZ,DT,NXPhy0,NYPhy0,NXPhy,NYPhy,NX0,NX,NY0,NY,NZ0,NZ,PNEW,NNEW)
 
       DO 2600 J = NYPhy0-2,NYPhy+2
