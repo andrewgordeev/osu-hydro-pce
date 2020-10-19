@@ -1,0 +1,4 @@
+/home/andrew/.local/share/osu-hydro-pce/osu-hydro-pce.conf
+/home/andrew/.local/share/osu-hydro-pce/eos.dat
+/home/andrew/.local/share/osu-hydro-pce/eos-gluon.dat
+/home/andrew/.local/bin/osu-hydro-pce
