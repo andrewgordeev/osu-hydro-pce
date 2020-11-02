@@ -1,4 +1,3 @@
-
 C*****************************************************************************
 C                                                                            *
 C         Viscous Israel Stewart Hydrodynamics in 2+1-dimention (VISH2+1)    *
@@ -71,7 +70,7 @@ C   [5] H.Song, Ph.D thesis 2009, arXiv:0908.3656 [nucl-th].
       Common /T0/ T0
 
       Double Precision Time, Teq
-      Common /Time/ Time, Teq
+      common /Time/ Time, Teq
 
       Double Precision Tfinal
       Common /Tfinal/ Tfinal
@@ -247,6 +246,9 @@ C###############################################################################
       Dimension Temp0(NX0:NX, NY0:NY, NZ0:NZ) !Local Temperature
       Dimension Temp(NX0:NX, NY0:NY, NZ0:NZ) !Local Temperature
 
+      Dimension Tprop(NX0:NX,NY0:NY,NZ0:NZ)
+      Dimension TpropOld(NX0:NX,NY0:NY,NZ0:NZ)          
+
       Dimension IAA(NX0:NX, NY0:NY, NZ0:NZ)
       Dimension CofAA(0:2,NX0:NX, NY0:NY, NZ0:NZ)
 
@@ -254,7 +256,7 @@ C###############################################################################
       Dimension etaTtp0(NX0:NX, NY0:NY, NZ0:NZ)  !extra (eta T)/tau_pi terms in I-S eqn 02/2008
 
       Dimension XiTtP(NX0:NX, NY0:NY, NZ0:NZ)  !extra (Xi T)/tau_Pi terms in full I-S bulk eqn 08/2008
-      Dimension XiTtP0(NX0:NX, NY0:NY, NZ0:NZ)  !extra (Xi T)/tau_Pi in last time step
+      Dimension XiTtP0(NX0:NX, NY0:NY, NZ0:NZ) !extra (Xi T)/tau_Pi in last time step  
 
       ! backups
 
@@ -294,7 +296,6 @@ C-------------------------------------------------------------------------------
       Common /Tde/ Tde, Rdec1, Rdec2,TempIni !Decoupling Temperature !decoupling radius
       common/Edec/Edec
       common/Edec1/Edec1
-
       Common /Nsm/ Nsm
 
       Common/R0Aeps/ R0,Aeps
@@ -324,9 +325,10 @@ C-------------------------------------------------------------------------------
       
       Dimension EdOld(NX0:NX,NY0:NY,NZ0:NZ,1:MaxT) ! tracking old Ed - Andrew
       Dimension TempOld(NX0:NX,NY0:NY,NZ0:NZ,1:MaxT)
+      Dimension Sd0(NX0:NX,NY0:NY,NZ0:NZ)
       
       Edec1 = Edec
-     
+      
 
 !=======================================================================
 !============ Initialization ===========================================
@@ -338,8 +340,8 @@ C-------------------------------------------------------------------------------
      &  PScT11,PScT12,PScT22,etaTtp0,etaTtp,PPI,PISc,XiTtP0,XiTtP,
      &  U0,U1,U2, PU0,PU1,PU2,SxyT,Stotal,StotalBv,StotalSv,
      &  Ed,PL,Sd,Temp0,Temp,T00,T01,T02,IAA,CofAA,PNEW,
-     &  TEM0,ATEM0,EPS0,V10,V20,AEPS0,AV10,AV20,TFREEZ)
-
+     &  TEM0,ATEM0,EPS0,V10,V20,AEPS0,AV10,AV20,TFREEZ, Tprop)
+       
        do 9999 ITime = 1,MaxT
 !***********************  Begin  Time Loop ********************************
 
@@ -349,8 +351,19 @@ C-------------------------------------------------------------------------------
        DO 4999 I = NX0, NX
           EdOld(I,J,K,ITime)=Ed(I,J,K)
           TempOld(I,J,K,ITime)=Temp(I,J,K)
+          Sd0(I,J,K) = Sd(I,J,K)
 4999   Continue   
-          
+
+!!!!  Save proper time at each point - Andrew
+
+       DO 5999 K = NZ0,NZ
+       DO 5999 J = NY0,NY
+       DO 5999 I = NX0,NX
+          TpropOld(I,J,K) = Tprop(I,J,K)
+          Tprop(I,J,K) = TpropOld(I,J,K)
+     &                + DT/sqrt(1+U1(I,J,K)**2+U2(I,J,K)**2)
+5999   Continue          
+       
 !   ---Zhi-Changes---
         Call determineR0(NX0,NY0,NZ0,NX,NY,NZ,Ed,PL,Sd,
      &  Pi00,Pi01,Pi02,Pi11,Pi12,Pi22,Pi33)  !fermi-dirac function to regulate boundary (by determine a suitable R0)
@@ -401,7 +414,8 @@ C-------------------------------------------------------------------------------
      &  PScT11,PScT12,PScT22,etaTtp0,etaTtp,  PPI,PISc, XiTtP0,XiTtP,
      &  U0,U1,U2, PU0,PU1,PU2,SxyT,Stotal,StotalBv,StotalSv,
      &  Ed,PL,Sd,Temp0,Temp, T00,T01,T02, IAA,CofAA,DX,DY,
-     &  DZ,DT,NXPhy0,NYPhy0,NXPhy,NYPhy,NX0,NX,NY0,NY,NZ0,NZ,PNEW,NNEW)  !PNEW NNEW  related to root finding
+     &  DZ,DT,NXPhy0,NYPhy0,NXPhy,NYPhy,NX0,NX,NY0,NY,NZ0,NZ,PNEW,NNEW,
+     &  Tprop )                         !PNEW NNEW  related to root finding
 
         DIFFC = 0.125D0
         !DIFFC = 0D0
@@ -493,7 +507,8 @@ C-------------------------------------------------------------------------------
      &  PScT11,PScT12,PScT22,etaTtp0,etaTtp,  PPI,PISc, XiTtP0,XiTtP,
      &  U0,U1,U2, PU0,PU1,PU2,SxyT,Stotal,StotalBv,StotalSv,
      &  Ed,PL,Sd,Temp0,Temp, T00,T01,T02, IAA,CofAA,DX,DY,
-     &  DZ,DT,NXPhy0,NYPhy0,NXPhy,NYPhy,NX0,NX,NY0,NY,NZ0,NZ,PNEW,NNEW)  !PNEW NNEW  related to root finding
+     &  DZ,DT,NXPhy0,NYPhy0,NXPhy,NYPhy,NX0,NX,NY0,NY,NZ0,NZ,PNEW,NNEW,
+     &  Tprop)                         !PNEW NNEW  related to root finding
 
       End If  ! VisNonzero .or. VisBulkNonzero
 
@@ -568,7 +583,7 @@ C      NDT = 5
      &     FPi00,FPi01,FPi02,FPi33,FPi11,FPi12,FPi22,
      &     F0PPI, FPPI,
      &     N,T,DX,DY,DT,NXPhy,NYPhy,NX0,NX,NY0,NY, TEM1, TEM0, EdOld,
-     &     MaxT, TempOld)
+     &     MaxT, TempOld, Tprop, TpropOld, Sd, SD0)
 
       DO 5400 J=NY0,NY
       DO 5400 I=NX0,NX
@@ -614,7 +629,7 @@ C###############################################################################
      &     FPi00,FPi01,FPi02,FPi33,FPi11,FPi12,FPi22,
      &     F0PPI, FPPI,
      &     N,T,DX,DY,DT,NXPhy,NYPhy,NX0,NX,NY0,NY, TEM1, TEM0, EdOld,
-     &     MaxT, TempOld)
+     &     MaxT, TempOld, Tprop, TpropOld, Sd, SD0)
 *     a subroutine to calculate the freeze-out surface using cornelius from P. Huovinen
 *     T=Time   N, Timestep for the largest Loop.
       Implicit none
@@ -655,7 +670,12 @@ C###############################################################################
       Double Precision :: temper, epsd
       Double Precision, Dimension(NX0:NX,NY0:NY,NZ0:NZ,1:MaxT) :: EdOld     
       Double Precision, Dimension(NX0:NX,NY0:NY,NZ0:NZ,1:MaxT) ::
-     & TempOld
+     &     TempOld
+      Double Precision, Dimension(NX0:NX,NY0:NY,NZ0:NZ) :: Tprop
+      Double Precision, Dimension(NX0:NX,NY0:NY,NZ0:NZ) :: TpropOld     
+      double precision :: TpropInter, entropy
+      Double Precision, Dimension(NX0:NX,NY0:NY,NZ0:NZ) :: Sd
+      Double Precision, Dimension(NX0:NX,NY0:NY,NZ0:NZ) :: Sd0      
 
       
       double precision, Dimension(0:1,0:1,0:1) :: Cube
@@ -676,7 +696,7 @@ C###############################################################################
       double precision :: CPi11, CPi12, CPi22, CPi33
       double precision :: CPPI
 
-      double precision :: Time, Teq
+      Double Precision Time, Teq
       common /Time/ Time, Teq
       
 !** Zhi ***
@@ -757,6 +777,11 @@ C###############################################################################
      &          NX0,NY0,NX,NY,DTFreeze,DXFreeze,DYFreeze,temper)
            CALL P4(I,J,NDX,NDY,NDT,Vmidpoint,EPS0,EPS1,
      &          NX0,NY0,NX,NY,DTFreeze,DXFreeze,DYFreeze,epsd)           
+           CALL P4(I,J,NDX,NDY,NDT,Vmidpoint,TpropOld(:,:,NZ0),
+     &          Tprop(:,:,NZ0),NX0,NY0,NX,NY,DTFreeze,DXFreeze,DYFreeze,
+     &          TpropInter)
+           CALL P4(I,J,NDX,NDY,NDT,VMidpoint,Sd0(:,:,NZ0),Sd(:,:,NZ0),
+     &          NX0,NY0,NX,NY,DTFreeze,DXFreeze,DYFreeze,entropy)
            
 
            write(99)
@@ -766,7 +791,7 @@ C###############################################################################
      &       CPi00*HbarC, CPi01*HbarC, CPi02*HbarC,
      &       CPi11*HbarC, CPi12*HbarC, CPi22*HbarC,
      &       CPi33*HbarC,
-     &       CPPI*HbarC, temper, epsd
+     &       CPPI*HbarC, temper, epsd, TpropInter, entropy
 
          Enddo  ! Nsurf
 !      ENDIF  ! intersect
@@ -784,7 +809,7 @@ C####################################################################
       Subroutine TransportPi6( Pi00,Pi01,Pi02,Pi33, Pi11,Pi12,Pi22,
      &  PPI,Ed, Sd, PL, Temp, Temp0, U0,U1,U2,PU0,PU1,PU2, DX,DY,DZ,DT,
      &  NX0,NY0,NZ0, NX,NY,NZ, NXPhy0,NYPhy0, NXPhy,NYPhy,
-     &  VRelaxT, VRelaxT0)
+     &  VRelaxT, VRelaxT0, Tprop)
 C------- Transport Pi00,Pi01,Pi02,Pi03,Pi11, Pi12,Pi22 by first order theory
         Implicit Double Precision (A-H, O-Z)
         Dimension U0(NX0:NX, NY0:NY, NZ0:NZ) !Four velocity
@@ -842,9 +867,11 @@ C------- Transport Pi00,Pi01,Pi02,Pi03,Pi11, Pi12,Pi22 by first order theory
        Dimension VRelaxT0(NX0:NX, NY0:NY, NZ0:NZ) !viscous coeficient relaxation time \tau_PI
        Dimension XiTtP(NX0:NX, NY0:NY, NZ0:NZ)  !extra (Xi T)/tau_Pi terms in full I-S bulk eqn 08/2008
 
+       Dimension Tprop(NX0:NX, NY0:NY, NZ0:NZ)
+       
        COMMON /IEin/ IEin  !parameter for initializtion by entropy 1 or energy 0
 
-       common /Time/ Time, Teq
+      common /Time/ Time, Teq
        
 !   ---Changes-Zhi--- ***
       Double Precision R0,Aeps
@@ -861,7 +888,8 @@ C------- Transport Pi00,Pi01,Pi02,Pi03,Pi11, Pi12,Pi22 by first order theory
 
         call ViscousCoefi8(Ed,Sd,PL,Temp,
      &  VCoefi,VCBeta,VRelaxT,etaTtp, VBulk, VRelaxT0,XiTtP,
-     &  DX,DY,DT,NX0,NY0,NZ0, NX,NY,NZ, NXPhy0,NYPhy0, NXPhy,NYPhy)
+     &   DX,DY,DT,NX0,NY0,NZ0, NX,NY,NZ, NXPhy0,NYPhy0, NXPhy,NYPhy,
+     &   Tprop(i,j,k))
 
          do 10 k=NZ0,NZ
          do 10 j=NY0,NY
@@ -949,7 +977,8 @@ C-------------------------------------------------------------------------------
 
         Common/R0Aeps/ R0,Aeps
         Common /R0Bdry/ R0Bdry
-        common /Time/ Time, Teq
+
+      common /Time/ Time, Teq
 
 C$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 C       Dimension A00(NX0:NX, NY0:NY, NZ0:NZ)
@@ -1105,7 +1134,8 @@ c             Pi13(I,J,K)=0.0
 C#####################################################
        Subroutine ViscousCoefi8(Ed,Sd,PL,Temp,
      &  VCoefi,VCBeta,VRelaxT,etaTtp, VBulk, VRelaxT0,XiTtP,
-     &  DX,DY,DT,NX0,NY0,NZ0, NX,NY,NZ, NXPhy0,NYPhy0, NXPhy,NYPhy)
+     &     DX,DY,DT,NX0,NY0,NZ0, NX,NY,NZ, NXPhy0,NYPhy0, NXPhy,NYPhy,
+     &  Tprop)
 !--------call visous coeficient from from entropy
 !--------bulk viscosity are included
       Implicit Double Precision (A-H, O-Z)
@@ -1122,7 +1152,9 @@ C#####################################################
 
       Dimension VBulk(NX0:NX, NY0:NY, NZ0:NZ) !viscous coeficient-bulk vicosity \xi
       Dimension VRelaxT0(NX0:NX, NY0:NY, NZ0:NZ) !viscous coeficient relaxation time \tau_PI
-      Dimension XiTtP(NX0:NX, NY0:NY, NZ0:NZ)  !extra (Xi T)/tau_Pi terms in full I-S bulk eqn 08/2008
+      Dimension XiTtP(NX0:NX, NY0:NY, NZ0:NZ) !extra (Xi T)/tau_Pi terms in full I-S bulk eqn 08/2008
+
+      Dimension Tprop(NX0:NX, NY0:NY, NZ0:NZ)
 
       double precision :: VisT0, VisHRG, VisMin, VisSlope, VisCrv,
      &                    VisBeta
@@ -1141,7 +1173,7 @@ C#####################################################
       Common/R0Aeps/ R0,Aeps
       Common/R0Bdry/ R0Bdry
       double precision, parameter :: HbarC = M_HBARC
-      common /Time/ Time, Teq
+
       
       do 10 k=1,1
       do 10 j=NYPhy0-2,NYPhy+2 ! -2,NYPhy+2
@@ -1205,7 +1237,8 @@ C#####################################################
           VRelaxT0(i,j,k) = 1.0/DMax1(0.1d0, TauPi)
         else if (IRelaxBulk .eq. 4) then
           ! lower bound of bulk relaxation time
-          delta_cs2 = (1.0/3.0 - getCS2(Ed(i,j,k)*HbarC))**2
+           delta_cs2 = (1.0/3.0 - getCS2(Ed(i,j,k)*HbarC,
+     &      Tprop(i,j,k)))**2
           Taupi = VBulk(i,j,k)/(14.55*delta_cs2*(Ed(i,j,k)+PL(i,j,k)))
           VRelaxT0(i,j,k) = 1.D0/DMax1(0.1D0, TauPi)
         else
@@ -1268,13 +1301,13 @@ CSHEN=====end==============================================================
 
 C---J.Liu------------------------------------------------------------------------
 
-      double precision function getCS2(Ed)
+      double precision function getCS2(Ed, Tp)
       Implicit double precision (A-H, O-Z)
       
       ! unit of Ed should be GeV/fm^3
       de = 0.05*Ed
-      p1 = PEOSL7(Ed - de/2.)
-      p2 = PEOSL7(Ed + de/2.)
+      p1 = PEOSL7(Ed - de/2., Tp)
+      p2 = PEOSL7(Ed + de/2., Tp)
       cs2 = (p2 - p1)/de   !cs^2 = dP/de
 
       getCS2 = cs2
@@ -1300,13 +1333,13 @@ C---J.Liu-----------------------------------------------------------------------
 
 
       Subroutine ViscousBulkTransCoefs(Ed, tauBPi_inverse,
-     &        deltaBPiBPi, lambdaBPiSpi)
+     &        deltaBPiBPi, lambdaBPiSpi, Tp)
       ! calculate the bulk transport coefficients according to
       ! Ed input should be in unit of GeV/fm^3
       Implicit Double Precision (A-H, O-Z)
       double precision lambdaBPiSpi
       tauBPi = 1.D0/dMax1(tauBPi_inverse, 1e-18)
-      cs2 = getCS2(Ed)
+      cs2 = getCS2(Ed, Tp)
 
       deltaBPiBPi = 2.D0/3.D0*tauBPi
       lambdaBPiSpi = 8.D0/5.D0*(1.D0/3.D0 - cs2)*tauBPi
@@ -1349,7 +1382,7 @@ C     &          *(1-Cper)  !HRG
 
 C###########################################################################
        Subroutine EntropyTemp3 (Ed,PL, Temp,Sd,
-     &       NX0,NY0,NZ0, NX,NY,NZ, NXPhy0,NYPhy0, NXPhy,NYPhy)
+     &       NX0,NY0,NZ0, NX,NY,NZ, NXPhy0,NYPhy0, NXPhy,NYPhy, Tprop)
 C------call Temperatuen mu  Entropy from ee pp-----------
         Implicit Double Precision (A-H, O-Z)
        Dimension Ed(NX0:NX, NY0:NY, NZ0:NZ) !energy density
@@ -1358,10 +1391,10 @@ C------call Temperatuen mu  Entropy from ee pp-----------
        Dimension Temp(NX0:NX, NY0:NY, NZ0:NZ) !Local Temperature
        Dimension Sd(NX0:NX, NY0:NY, NZ0:NZ) !entropy density
 
+       Dimension Tprop(NX0:NX, NY0:NY, NZ0:NZ)
+       
        double precision, parameter :: HbarC = M_HBARC
 
-       double precision Time, Teq
-       common /Time/ Time, Teq
       
       Do 1001 k=1,1                           !do 10 is in the unit of fm-1
       Do 1001 j=NYPhy0-2,NYPhy+2 ! -2,NYPhy
@@ -1373,9 +1406,9 @@ C------call Temperatuen mu  Entropy from ee pp-----------
       do j = NYPhy0-2,NYPhy+2
       do i = NXPhy0-2,NXPhy+2
        ee = Ed(i,j,k)*HbarC     !ee in Gev/fm^3
-       PL(i,j,k)   = PEOSL7(ee)/HbarC    !PEOSL7 in GeV/fm^3, PL in fm^-4
-       Temp(i,j,k) = TEOSL7(ee)/HbarC    !TEOSL7 in GeV, Temp in fm^-1
-       Sd(i,j,k)   = SEOSL7(ee)          !SEOSL7 in fm^-3, Sd in fm^-3
+       PL(i,j,k)   = PEOSL7(ee, Tprop(i,j,k))/HbarC    !PEOSL7 in GeV/fm^3, PL in fm^-4
+       Temp(i,j,k) = TEOSL7(ee, Tprop(i,j,k))/HbarC    !TEOSL7 in GeV, Temp in fm^-1
+       Sd(i,j,k)   = SEOSL7(ee, Tprop(i,j,k))          !SEOSL7 in fm^-3, Sd in fm^-3
       enddo   ! i loop
       enddo   ! j loop
       enddo   ! k loop
@@ -1490,7 +1523,8 @@ C###################################################################
      &  PScT11,PScT12,PScT22,etaTtp0,etaTtp,  PPI,PISc, XiTtP0,XiTtP,
      &  U0,U1,U2, PU0,PU1,PU2,SxyT,Stotal,StotalBv,StotalSv,
      &  Ed,PL,Sd,Temp0,Temp, T00,T01,T02, IAA,CofAA,DX,DY,
-     &  DZ,DT,NXPhy0,NYPhy0,NXPhy,NYPhy,NX0,NX,NY0,NY,NZ0,NZ, PNEW,NNEW)
+     &  DZ,DT,NXPhy0,NYPhy0,NXPhy,NYPhy,NX0,NX,NY0,NY,NZ0,NZ, PNEW,NNEW,
+     &  Tprop)
       !PNEW NNEW related to root finding
 
         Implicit Double Precision (A-H, O-Z)
@@ -1580,6 +1614,8 @@ C-------------------------------------------
         Dimension IAA(NX0:NX, NY0:NY, NZ0:NZ)
         Dimension CofAA(0:2,NX0:NX, NY0:NY, NZ0:NZ)
 
+        Dimension Tprop(NX0:NX, NY0:NY, NZ0:NZ)
+
       double precision :: VisT0, VisHRG, VisMin, VisSlope, VisCrv,
      &                    VisBeta
       common /VisShear/ VisT0, VisHRG, VisMin, VisSlope, VisCrv, VisBeta
@@ -1602,9 +1638,9 @@ C-------------------------------------------
       Double Precision T0
       Common /T0/ T0
 
-      double precision Time, Teq
+      Double Precision Time, Teq
       common /Time/ Time, Teq
-
+      
        double precision, parameter :: HbarC = M_HBARC
 
        Common /Nsm/ Nsm
@@ -1732,7 +1768,7 @@ C---------------------------------------------------------------
         VP = VP_local
 
         ee=Ed(I,J,NZ0)*HbarC        !fm-4 to GeV/fm3  peter unit
-        pp=DMAX1(0.0D0,PEOSL7(ee))
+        pp=DMAX1(0.0D0,PEOSL7(ee, Tprop(i,j,k)))
         PL(I,J,K)=pp/HbarC           !GeV/fm3 to fm-4
 
         Vx(I,J,K) = VP*T01IJ/DM
@@ -1910,11 +1946,12 @@ c------------------------------------------------------------------
 
 C---------------------------------------------------------------------
         call EntropyTemp3 (Ed,PL, Temp,Sd,
-     &         NX0,NY0,NZ0, NX,NY,NZ, NXPhy0,NYPhy0, NXPhy,NYPhy)
+     &         NX0,NY0,NZ0, NX,NY,NZ, NXPhy0,NYPhy0, NXPhy,NYPhy, Tprop)
 
         call ViscousCoefi8(Ed,Sd,PL,Temp,
      &  VCoefi,VCBeta,VRelaxT,etaTtp, VBulk, VRelaxT0,XiTtP,
-     &  DX,DY,DT,NX0,NY0,NZ0, NX,NY,NZ, NXPhy0,NYPhy0, NXPhy,NYPhy)
+     &       DX,DY,DT,NX0,NY0,NZ0, NX,NY,NZ, NXPhy0,NYPhy0, NXPhy,NYPhy,
+     &   Tprop)
 C--------------------
 
       If (VisNonzero .or. VisBulkNonzero) Then
@@ -2180,7 +2217,7 @@ C-------------------------------------------------------------------------------
           elseif(ViscousEqsType .eq. 2) then
           ! Bulk pressure terms from 14-moments expansion
             call ViscousBulkTransCoefs(ED(i,j,k)*Hbarc, VRelaxT0(i,j,k),
-     &          deltaBPiBPi, lambdaBPiSpi) ! calculate transport coefficients
+     &          deltaBPiBPi, lambdaBPiSpi, Tprop(i,j,k)) ! calculate transport coefficients
 
             piSigma = Pi00(i,j,k)*DPc00(i,j,k)+
      &           Pi11(i,j,k)*DPc11(i,j,k) + Pi22(i,j,k)*DPc22(i,j,k)
@@ -2402,6 +2439,7 @@ C###############################################################################
       Dimension ScT02(NX0:NX, NY0:NY, NZ0:NZ) !Source Term  ScT=ScX+ScY+ScZ
 
       common/Edec/Edec          !decoupling temperature
+
       common /Time/ Time, Teq
 
        EpsX1=0.0  !relate spacial ellipticity
@@ -2634,8 +2672,11 @@ C----------------------------------------------------------------
       double precision, parameter :: HbarC = M_HBARC
 
       Double Precision A,B ! intermedia step variables
+
+      Double Precision Time, Teq
+      common /Time/ Time, Teq
       
-      cs2=PEOSL7(ee*Hbarc)/dmax1(abs(ee),zero)/Hbarc ! check dimension?
+      cs2=PEOSL7(ee*Hbarc, Time)/dmax1(abs(ee),zero)/Hbarc ! check dimension?
       A=RSDM0*(1-cs2)+RSPPI
       B=RSDM0*(RSDM0+RSPPI)-RSDM*RSDM
       findEdHook = ee-2*B/dmax1((sqrt(A*A+4*cs2*B)+A), zero)
@@ -2664,8 +2705,11 @@ C----------------------------------------------------------------
 
       Double Precision A        ! temporary variables
 
+      Double Precision Time, Teq
+      common /Time/ Time, Teq
+      
       RSee = RSDM0 - v*RSDM
-      cstilde2=PEOSL7(RSee*Hbarc)/dmax1(abs(RSee),zero)/Hbarc
+      cstilde2=PEOSL7(RSee*Hbarc, Time)/dmax1(abs(RSee),zero)/Hbarc
       A=RSDM0*(1+cstilde2)+RSPPI
 
       findvHook = v - (2*RSDM)/(A + sqrt(dmax1(A*A
@@ -2697,11 +2741,14 @@ C----------------------------------------------------------------
       Double Precision, Parameter :: zero=1e-30 ! a small number
       double precision, parameter :: HbarC = M_HBARC
 
-      Double Precision A ! temporary variables
+      Double Precision A        ! temporary variables
+
+      Double Precision Time, Teq
+      common /Time/ Time, Teq
 
       v = sqrt(1 - 1/max(U0, 1d0)**2)
       RSee = RSDM0 - v*RSDM
-      cstilde2=PEOSL7(RSee*Hbarc)/dmax1(abs(RSee),zero)/Hbarc
+      cstilde2=PEOSL7(RSee*Hbarc, Time)/dmax1(abs(RSee),zero)/Hbarc
       A=RSDM0*(1+cstilde2)+RSPPI
       v = (2*RSDM)/(A+sqrt(dmax1(A*A-4*cstilde2*RSDM*RSDM, 1D-30))
      &              + 1D-30)

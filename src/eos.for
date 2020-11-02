@@ -208,11 +208,11 @@ C====EOS from table===================================================
       
       return
       end
-
-      Double Precision Function PEOSL7(e) ! for lattice P(e)
+      
+      Double Precision Function PEOSL7(e, Tprop) ! for lattice P(e)
       Implicit none
 
-      double precision :: e
+      double precision :: e, Tprop
 
       double precision :: PEOSdata(EOSDATALENGTH),
      &                    SEOSdata(EOSDATALENGTH),
@@ -248,7 +248,7 @@ C====EOS from table===================================================
 
       double precision fugacity, fug, PEOSL7qcd, PEOSL7gluon
       
-      fugacity = fug(T0, Time, Teq)
+      fugacity = fug(T0, Tprop, Teq)
       
       e = abs(e)
 
@@ -357,10 +357,11 @@ C====EOS from table===================================================
       return
       end
       
-      Double Precision Function SEOSL7(e)  ! for lattice S(e)
+      Double Precision Function SEOSL7(e, Tpin)  ! for lattice S(e)
       Implicit none
 
-      double precision :: e
+      double precision :: e, Tprop
+      double precision,optional :: Tpin
       double precision :: PEOSL7
      
       double precision :: PEOSdata(EOSDATALENGTH),
@@ -396,8 +397,14 @@ C====EOS from table===================================================
       Common /T0/ T0
 
       double precision fugacity, fug, SEOSL7qcd, SEOSL7gluon
+
+      if (present(Tpin)) then
+         Tprop = Tpin
+      else
+         Tprop = T0
+      endif
       
-      fugacity = fug(T0, Time, Teq)
+      fugacity = fug(T0, Tprop, Teq)
 
       e = abs(e)
 
@@ -509,10 +516,10 @@ C====EOS from table===================================================
       return
       end
       
-      Double Precision Function TEOSL7(e)  ! for lattice T(e)
+      Double Precision Function TEOSL7(e, Tprop)  ! for lattice T(e)
       Implicit none
 
-      double precision :: e
+      double precision :: e, Tprop
 
       double precision :: PEOSL7, SEOSL7
 
@@ -550,7 +557,7 @@ C====EOS from table===================================================
 
       double precision fugacity, fug, TEOSL7qcd, TEOSL7gluon
       
-      fugacity = fug(T0, Time, Teq)
+      fugacity = fug(T0, Tprop, Teq)
       
       e = abs(e)
 

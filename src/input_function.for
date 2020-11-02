@@ -72,7 +72,7 @@
       Common /T0/ T0
 
       Double Precision Time, Teq
-      Common /Time/ Time, Teq
+      common /Time/ Time, Teq
 
       Integer LS
       Common /LS/ LS
@@ -292,7 +292,7 @@
       Common /regMethod/ regMethod
 
       common /Time/ Time, Teq
-      
+
       If (regMethod .eq. 1) Then
         DO 791 K=NZ0,NZ
         DO 791 J=NYPhy0,NYPhy

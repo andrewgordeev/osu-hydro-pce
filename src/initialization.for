@@ -8,7 +8,7 @@
      &  PScT11,PScT12,PScT22,etaTtp0,etaTtp,PPI,PISc,XiTtP0,XiTtP,
      &  U0,U1,U2, PU0,PU1,PU2,SxyT,Stotal,StotalBv,StotalSv,
      &  Ed,PL,Sd,Temp0,Temp,T00,T01,T02,IAA,CofAA,PNEW,
-     &  TEM0,ATEM0,EPS0,V10,V20,AEPS0,AV10,AV20,TFREEZ)
+     &  TEM0,ATEM0,EPS0,V10,V20,AEPS0,AV10,AV20,TFREEZ, Tprop)
 
       Implicit Double Precision (A-H, O-Z)
 
@@ -82,6 +82,8 @@ C======output relaxation time for both shear and bulk viscosity================
       Dimension VRelaxT0(NX0:NX, NY0:NY, NZ0:NZ) !viscous coeficient relaxation time
 CSHEN==========================================================================
 
+      DIMENSION Tprop(NX0:NX,NY0:NY,NZ0:NZ)      
+      
       ! energy density and temperature in previous step
       DIMENSION EPS0(NX0:NX,NY0:NY)
       DIMENSION TEM0(NX0:NX,NY0:NY)
@@ -133,10 +135,17 @@ C-------------------------------------------------------------------------------
 
       ! Freezeout energy density and temperature
       ee     = EDEC       ! GeV/fm^3
-      TFREEZ = TEOSL7(ee) ! GeV
+      TFREEZ = TEOSL7(ee, T0) ! GeV
 
       Time = T0
 
+       DO 3999 K = NZ0,NZ
+       DO 3999 J = NY0,NY
+       DO 3999 I = NX0,NX
+          Tprop(I,J,K) = Time
+3999   Continue          
+
+       
       ! read initial energy/entropy density from file
       if (IEin == 0) then
         ! energy density
@@ -157,21 +166,13 @@ C-------------------------------------------------------------------------------
       end if  ! IEin
 
       close(10)
-
-!!!!!!!!!!!!Andrew's test
-
-!      open(11, file='edtest.dat', status='replace',access='stream')
-!      write(11) Ed(NXPHY0:NXPhy, NYPhy0:NYPhy, NZ0)
-!      close(11)
-
-!!!!!!!!!!!!
       
       ! convert to fm^-4, add small constant (for numerical stability?)
       Ed = Ed/HbarC + 1d-10
 
       ! convert energy to pressure, entropy, temperature
       call EntropyTemp3 (Ed,PL, Temp,Sd,
-     &         NX0,NY0,NZ0, NX,NY,NZ, NXPhy0,NYPhy0, NXPhy,NYPhy)
+     &         NX0,NY0,NZ0, NX,NY,NZ, NXPhy0,NYPhy0, NXPhy,NYPhy, Tprop)
 
       Temp0 = Temp
 
@@ -244,7 +245,7 @@ C-------------------------------------------------------------------------------
         call TransportPi6(Pi00,Pi01,Pi02,Pi33, Pi11,Pi12,Pi22,
      &  PPI,Ed,Sd,PL,Temp,Temp0,U0,U1,U2,PU0,PU1,PU2, DX,DY,DZ,DT,
      &  NX0,NY0,NZ0, NX,NY,NZ, NXPhy0,NYPhy0, NXPhy,NYPhy,
-     &  VRelaxT,VRelaxT0)
+     &  VRelaxT,VRelaxT0, Tprop)
       end if
 
       ! initialize T^\mu\nu
@@ -257,7 +258,8 @@ C-------------------------------------------------------------------------------
      &  PScT11,PScT12,PScT22,etaTtp0,etaTtp,  PPI,PISc, XiTtP0,XiTtP,
      &  U0,U1,U2, PU0,PU1,PU2,SxyT, Stotal,StotalBv,StotalSv,
      &  Ed,PL,Sd,Temp0,Temp, T00,T01,T02, IAA,CofAA,DX,DY,
-     &  DZ,DT,NXPhy0,NYPhy0,NXPhy,NYPhy,NX0,NX,NY0,NY,NZ0,NZ,PNEW,NNEW)
+     &  DZ,DT,NXPhy0,NYPhy0,NXPhy,NYPhy,NX0,NX,NY0,NY,NZ0,NZ,PNEW,NNEW,
+     &  Tprop)
 
       DO 2600 J = NYPhy0-2,NYPhy+2
       DO 2600 I = NXPhy0-2,NXPhy+2
