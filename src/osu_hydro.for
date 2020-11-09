@@ -326,6 +326,9 @@ C-------------------------------------------------------------------------------
       Dimension EdOld(NX0:NX,NY0:NY,NZ0:NZ,1:MaxT) ! tracking old Ed - Andrew
       Dimension TempOld(NX0:NX,NY0:NY,NZ0:NZ,1:MaxT)
       Dimension Sd0(NX0:NX,NY0:NY,NZ0:NZ)
+
+      double precision K1, K2, K3, K4, U1mid, U2mid, U1mid2, U2mid2
+      double Precision, Dimension(0:2) :: RKmid, RKmid2
       
       Edec1 = Edec
       
@@ -354,14 +357,44 @@ C-------------------------------------------------------------------------------
           Sd0(I,J,K) = Sd(I,J,K)
 4999   Continue   
 
-!!!!  Save proper time at each point - Andrew
+!!!!  Save proper time at each point, using classic Runge-Kutta method to calculate it - Andrew
 
        DO 5999 K = NZ0,NZ
        DO 5999 J = NY0,NY
        DO 5999 I = NX0,NX
+!!!!!          TpropOld(I,J,K) = Tprop(I,J,K)
+!          Tprop(I,J,K) = TpropOld(I,J,K)
+!!!!!     &    + DT/sqrt(1+U1(I,J,K)**2+U2(I,J,K)**2)
+          RKmid = (/Time - DT/2.0, I*DX, J*DY/)
+          CALL P4(I,J,NDX,NDY,NDT,RKmid,PU1,U1,
+     &         NX0,NY0,NX,NY,NDT*DT,NDX*DX,NDY*DY,U1mid)
+          CALL P4(I,J,NDX,NDY,NDT,RKmid,PU2,U2,
+     &         NX0,NY0,NX,NY,NDT*DT,NDX*DX,NDY*DY,U2mid)          
+          K1 = 1/sqrt(1 + PU1(I,J,K)**2 + PU2(I,J,K)**2)
+          K2 = 1/sqrt(1 + U1mid**2 + U2mid**2)
+          K3 = 1/sqrt(1 + U1mid**2 + U2mid**2)
+          K4 = 1/sqrt(1 + U1(I,J,K)**2 + U2(I,J,K)**2)
           TpropOld(I,J,K) = Tprop(I,J,K)
           Tprop(I,J,K) = TpropOld(I,J,K)
-     &                + DT/sqrt(1+U1(I,J,K)**2+U2(I,J,K)**2)
+     &         + DT/6.0 * (K1 + 2*K2 + 2*K3 + K4)
+c$$$          RKmid = (/Time - DT*2.0/3.0, I*DX, J*DY/)
+c$$$          RKmid2 = (/Time - DT/3.0, I*DX, J*DY/)
+c$$$          CALL P4(I,J,NDX,NDY,NDT,RKmid,PU1,U1,
+c$$$     &         NX0,NY0,NX,NY,NDT*DT,NDX*DX,NDY*DY,U1mid)
+c$$$          CALL P4(I,J,NDX,NDY,NDT,RKmid2,PU1,U1,
+c$$$     &         NX0,NY0,NX,NY,NDT*DT,NDX*DX,NDY*DY,U1mid2)
+c$$$          CALL P4(I,J,NDX,NDY,NDT,RKmid,PU2,U2,
+c$$$     &         NX0,NY0,NX,NY,NDT*DT,NDX*DX,NDY*DY,U2mid)
+c$$$          CALL P4(I,J,NDX,NDY,NDT,RKmid2,PU1,U1,
+c$$$     &         NX0,NY0,NX,NY,NDT*DT,NDX*DX,NDY*DY,U2mid2)          
+c$$$          K1 = 1/sqrt(1 + PU1(I,J,K)**2 + PU2(I,J,K)**2)
+c$$$          K2 = 1/sqrt(1 + U1mid**2 + U2mid**2)
+c$$$          K3 = 1/sqrt(1 + U1mid2**2 + U2mid2**2)
+c$$$          K4 = 1/sqrt(1 + U1(I,J,K)**2 + U2(I,J,K)**2)
+c$$$          TpropOld(I,J,K) = Tprop(I,J,K)          
+c$$$          Tprop(I,J,K) = TpropOld(I,J,K)
+c$$$     &     + DT/8.0 * (K1 + 3*K2 + 3*K3 + K4)
+          
 5999   Continue          
        
 !   ---Zhi-Changes---

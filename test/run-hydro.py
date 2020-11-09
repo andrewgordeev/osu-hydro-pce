@@ -72,8 +72,8 @@ def run_hydro(fs, event_size, coarse=False, dt_ratio=0.25):
   
     #dt = dxy * dt_ratio
 
-    subprocess.run(['osu-hydro-pce', 'edec=0.1', 't0=0.1', 'teq=5.0', 'dt={}'.format(dt), 'dxy={}'.format(dxy), 'nls={}'.format(ls), 'tfinal=15.0'],  
-                   check=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
+#    subprocess.run(['osu-hydro-pce', 'edec=0.1', 't0=0.1', 'teq=5.0', 'dt={}'.format(dt), 'dxy={}'.format(dxy), 'nls={}'.format(ls), 'tfinal=15.0'],  
+#                   check=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
    # print(subprocess.getoutput(['osu-hydro', 't0=0.1', 'teq=5.0', 'dt={}'.format(dt), 'dxy={}'.format(dxy), 'nls={}'.format(ls)]))
     
     surface = np.fromfile('surface.dat', dtype='f8').reshape(-1, 20)
@@ -136,23 +136,23 @@ plt.rcParams.update({
 plt.figure(figsize=(7,5))
 
 """ 2D scatter plot of energy density (evals), temperature (tempvals), or fugacity (fugvals) over space and time: """
-# levels = np.arange(0, 400, 1) 
-# cmap = plt.cm.jet
-# plt.xlabel('x (fm)')
-# plt.ylabel(r'$\tau$ (fm/c)')
-# plt.scatter(rvals, tvals, c=fugvals, cmap=plt.cm.jet, vmin = 0, vmax = 1)
-# plt.colorbar(label=r'$\lambda$')
+levels = np.arange(0, 400, 1) 
+cmap = plt.cm.jet
+plt.xlabel('x (fm)')
+plt.ylabel(r'$\tau$ (fm/c)')
+plt.scatter(rvals, tvals, c=fugvals, cmap=plt.cm.jet, vmin = 0, vmax = 1)
+plt.colorbar(label=r'$\lambda$')
 
 """ Plotting contours """
-# r = np.linspace(0, 15, 1000)
-# t = np.linspace(0, 15, 1000)
-# plt.title(r'$T_{eq} = 5 fm/c$')
-# fug = griddata((rvals,tvals),fugvals,(r[None,:],t[:,None]),method='linear')
-# cs = plt.contour(r, t, fug, levels=[0.25, 0.5, 0.75, 0.9], colors='k', linewidths = 0.5)
-# plt.clabel(cs, inline=0, fontsize=10)
-# temp = griddata((rvals,tvals),tempvals,(r[None,:],t[:,None]),method='linear')
-# cs2 = plt.contour(r, t, temp, levels=[155], colors='w', linewidths = 0.5)
-# plt.clabel(cs2, inline=0, fontsize=10)
+r = np.linspace(0, 15, 100)
+t = np.linspace(0, 15, 100)
+plt.title(r'$T_{eq} = 5 fm/c$')
+fug = griddata((rvals,tvals),fugvals,(r[None,:],t[:,None]),method='linear')
+cs = plt.contour(r, t, fug, levels=[0.25, 0.5, 0.75, 0.9], colors='k', linewidths = 0.5)
+plt.clabel(cs, inline=0, fontsize=10)
+temp = griddata((rvals,tvals),tempvals,(r[None,:],t[:,None]),method='linear')
+cs2 = plt.contour(r, t, temp, levels=[155], colors='w', linewidths = 0.5)
+plt.clabel(cs2, inline=0, fontsize=10)
 
 
 """ 1D plot of initial energy density over x: """
@@ -173,26 +173,27 @@ plt.figure(figsize=(7,5))
 
 
 """ Determining and plotting total entropy per space-time rapidity """
-tspace = np.linspace(0.1, 15.1, 101)
-indices = []
-S = np.ones(tspace.size)
+# tspace = np.linspace(0.1, 15.1, 101)
+# indices = []
 
-for t in tspace:
-    newindex = int(np.argmax(results['x'][:,0]>t))
-    if (newindex == 0 and t > tspace[0]):
-        break
-    indices.append(newindex)
+# for t in tspace:
+#     newindex = int(np.argmax(results['x'][:,0]>t))
+#     if (newindex == 0 and t > tspace[0]):
+#         break
+#     indices.append(newindex)
 
-sd = results['sd']
-gamma = (1-(results['v']**2).sum(axis=1))**(-1/2)
-dtspace = tspace[1]-tspace[0]
+# S = np.ones(len(indices))
+# sd = results['sd']
+# gamma = (1-(results['v']**2).sum(axis=1))**(-1/2)
+# dtspace = tspace[1]-tspace[0]
+# r = np.linspace(0, 15, 100)
+# t = np.linspace(0, 15, 100)
+# entropy = griddata((rvals,tvals),sd*gamma*tvals,(r[None,:],t[:,None]),method='linear')
 
-for i in range(1,len(indices)):
-    if i == (len(indices)-1):
-        S[i-1] = (1000*dtspace*grid_step**2*gamma[indices[i-1]:]*tvals[indices[i-1]:]*sd[indices[i-1]:]/(sd[indices[i-1]:].size)).sum()
-    else:
-        S[i-1] = (1000*dtspace*grid_step**2*gamma[indices[i-1]:indices[i]]*tvals[indices[i-1]:indices[i]]*sd[indices[i-1]:indices[i]]/(indices[i]-indices[i-1])).sum()
-        
-plt.xlabel(r'$\tau$ (fm/c)')
-plt.ylabel(r'$10^{-3} dS/d\eta$')
-plt.plot(tspace[:-2], S[:-2])
+# for i in range(1,len(indices)):
+#     S[i-1] = (1000*dtspace*grid_step**2*gamma[indices[i-1]:indices[i]]*tvals[indices[i-1]:indices[i]]*sd[indices[i-1]:indices[i]]/(indices[i]-indices[i-1])).sum()
+# S[len(indices)-1] = (1000*dtspace*grid_step**2*gamma[indices[-1]:]*tvals[indices[-1]:]*sd[indices[-1]:]/(indices[-1]-indices[-2])).sum()
+    
+# plt.xlabel(r'$\tau$ (fm/c)')
+# plt.ylabel(r'$10^{-3} dS/d\eta$')
+# plt.plot(tspace[:-1], S)
