@@ -179,7 +179,7 @@ C   [5] H.Song, Ph.D thesis 2009, arXiv:0908.3656 [nucl-th].
       End
 !-----------------------------------------------------------------------
 
-
+      
 
 C######################################################################################
       Subroutine Mainpro(NX0,NY0,NZ0, NX,NY,NZ,NXPhy0,NYPhy0,
@@ -240,14 +240,15 @@ C###############################################################################
       Dimension U2(NX0:NX, NY0:NY, NZ0:NZ) !Four velocity
 
       Dimension Ed(NX0:NX, NY0:NY, NZ0:NZ) !energy density
-      Dimension PL(NX0:NX, NY0:NY, NZ0:NZ) !pressure
+      Dimension PL(NX0:NX, NY0:NY, NZ0:NZ) !pressures
       Dimension Sd(NX0:NX, NY0:NY, NZ0:NZ) !entropy density
 
       Dimension Temp0(NX0:NX, NY0:NY, NZ0:NZ) !Local Temperature
       Dimension Temp(NX0:NX, NY0:NY, NZ0:NZ) !Local Temperature
 
       Dimension Tprop(NX0:NX,NY0:NY,NZ0:NZ)
-      Dimension TpropOld(NX0:NX,NY0:NY,NZ0:NZ)          
+      Dimension TpropOld(NX0:NX,NY0:NY,NZ0:NZ)
+      Dimension Tprop0(NX0:NX,NY0:NY,NZ0:NZ)
 
       Dimension IAA(NX0:NX, NY0:NY, NZ0:NZ)
       Dimension CofAA(0:2,NX0:NX, NY0:NY, NZ0:NZ)
@@ -329,6 +330,11 @@ C-------------------------------------------------------------------------------
 
       double precision K1, K2, K3, K4, U1mid, U2mid, U1mid2, U2mid2
       double Precision, Dimension(0:2) :: RKmid, RKmid2
+      double precision v1mid, v2mid, xm, ym
+      double precision, Dimension(0:2) :: Tmid
+      double precision, Dimension(0:1) :: wx, wy
+
+      Integer :: sgn
       
       Edec1 = Edec
       
@@ -357,45 +363,6 @@ C-------------------------------------------------------------------------------
           Sd0(I,J,K) = Sd(I,J,K)
 4999   Continue   
 
-!!!!  Save proper time at each point, using classic Runge-Kutta method to calculate it - Andrew
-
-       DO 5999 K = NZ0,NZ
-       DO 5999 J = NY0,NY
-       DO 5999 I = NX0,NX
-!!!!!          TpropOld(I,J,K) = Tprop(I,J,K)
-!          Tprop(I,J,K) = TpropOld(I,J,K)
-!!!!!     &    + DT/sqrt(1+U1(I,J,K)**2+U2(I,J,K)**2)
-          RKmid = (/Time - DT/2.0, I*DX, J*DY/)
-          CALL P4(I,J,NDX,NDY,NDT,RKmid,PU1,U1,
-     &         NX0,NY0,NX,NY,NDT*DT,NDX*DX,NDY*DY,U1mid)
-          CALL P4(I,J,NDX,NDY,NDT,RKmid,PU2,U2,
-     &         NX0,NY0,NX,NY,NDT*DT,NDX*DX,NDY*DY,U2mid)          
-          K1 = 1/sqrt(1 + PU1(I,J,K)**2 + PU2(I,J,K)**2)
-          K2 = 1/sqrt(1 + U1mid**2 + U2mid**2)
-          K3 = 1/sqrt(1 + U1mid**2 + U2mid**2)
-          K4 = 1/sqrt(1 + U1(I,J,K)**2 + U2(I,J,K)**2)
-          TpropOld(I,J,K) = Tprop(I,J,K)
-          Tprop(I,J,K) = TpropOld(I,J,K)
-     &         + DT/6.0 * (K1 + 2*K2 + 2*K3 + K4)
-c$$$          RKmid = (/Time - DT*2.0/3.0, I*DX, J*DY/)
-c$$$          RKmid2 = (/Time - DT/3.0, I*DX, J*DY/)
-c$$$          CALL P4(I,J,NDX,NDY,NDT,RKmid,PU1,U1,
-c$$$     &         NX0,NY0,NX,NY,NDT*DT,NDX*DX,NDY*DY,U1mid)
-c$$$          CALL P4(I,J,NDX,NDY,NDT,RKmid2,PU1,U1,
-c$$$     &         NX0,NY0,NX,NY,NDT*DT,NDX*DX,NDY*DY,U1mid2)
-c$$$          CALL P4(I,J,NDX,NDY,NDT,RKmid,PU2,U2,
-c$$$     &         NX0,NY0,NX,NY,NDT*DT,NDX*DX,NDY*DY,U2mid)
-c$$$          CALL P4(I,J,NDX,NDY,NDT,RKmid2,PU1,U1,
-c$$$     &         NX0,NY0,NX,NY,NDT*DT,NDX*DX,NDY*DY,U2mid2)          
-c$$$          K1 = 1/sqrt(1 + PU1(I,J,K)**2 + PU2(I,J,K)**2)
-c$$$          K2 = 1/sqrt(1 + U1mid**2 + U2mid**2)
-c$$$          K3 = 1/sqrt(1 + U1mid2**2 + U2mid2**2)
-c$$$          K4 = 1/sqrt(1 + U1(I,J,K)**2 + U2(I,J,K)**2)
-c$$$          TpropOld(I,J,K) = Tprop(I,J,K)          
-c$$$          Tprop(I,J,K) = TpropOld(I,J,K)
-c$$$     &     + DT/8.0 * (K1 + 3*K2 + 3*K3 + K4)
-          
-5999   Continue          
        
 !   ---Zhi-Changes---
         Call determineR0(NX0,NY0,NZ0,NX,NY,NZ,Ed,PL,Sd,
@@ -578,6 +545,47 @@ c$$$     &     + DT/8.0 * (K1 + 3*K2 + 3*K3 + K4)
      &      iRegulateCounter, iRegulateCounterBulkPi
 
 
+!!!!  Save proper time at each point, using finite difference method to calculate it - Andrew
+
+       DO 5999 K = NZ0,NZ
+       DO 5999 J = NY0,NY
+       DO 5999 I = NX0,NX
+          TpropOld(I,J,K) = Tprop(I,J,K)             
+          if (Ed(I,J,K) .LE. 0) then
+             Tprop0(I,J,K) = Tprop(I,J,K) + DT
+          else
+             v1mid = 0.5*(V10(I,J) + Vx(I,J,NZ0))
+             v2mid = 0.5*(V20(I,J) + Vy(I,J,Nz0))
+             Tprop0(I,J,K) = Tprop(I,J,K)
+     &       + 1.0D0*DT*sqrt(1D0-v1mid**2-v2mid**2)
+          end if
+ 5999  Continue
+      
+! Updating proper time with advection, as per Vovchenko's vHLLE code - Andrew      
+       Do 6999 K = NZ0, NZ
+       Do 6999 J = NY0, NY
+       Do 6999 I = NX0, NX
+          if (Ed(I,J,K) .LE. 0) then
+             Tprop(I,J,K) = Tprop0(I,J,K)
+          else
+             xm = -v1mid * DT/DX
+             ym = -v2mid * DT/DY
+             wx(0) = max(0D0,1 - abs(xm))
+             wx(1) = min(1D0,abs(xm))
+             wy(0) = max(0D0,1 - abs(ym))
+             wy(1) = min(1D0,abs(ym))
+             Tprop(I,J,K) = 0
+          
+             Do 7999 IX = 0,1
+             Do 7999 IY = 0,1
+                Tprop(I,J,K) = Tprop(I,J,K) + wx(IX) * wy(IY)
+     &               * Tprop0(I + IX*sgn(xm), J + IY*sgn(ym), K)
+
+ 7999        Continue
+          end if
+          
+ 6999  Continue
+      
 C~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 C~~~~     Freezeout Procedure (rewritten from Petor's code azhydro0p2)  A   ~~~~
 C~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1334,13 +1342,13 @@ CSHEN=====end==============================================================
 
 C---J.Liu------------------------------------------------------------------------
 
-      double precision function getCS2(Ed, Tp)
+      double precision function getCS2(Ed, Tprop)
       Implicit double precision (A-H, O-Z)
       
       ! unit of Ed should be GeV/fm^3
       de = 0.05*Ed
-      p1 = PEOSL7(Ed - de/2., Tp)
-      p2 = PEOSL7(Ed + de/2., Tp)
+      p1 = PEOSL7(Ed - de/2., Tprop)
+      p2 = PEOSL7(Ed + de/2., Tprop)
       cs2 = (p2 - p1)/de   !cs^2 = dP/de
 
       getCS2 = cs2
@@ -3078,3 +3086,15 @@ C----------------------------------------------------------------
       End Do
 
       End Subroutine
+
+
+      Integer Function sgn(x)
+      double precision x
+      if (x > 0) then
+         sgn = 1
+      else if (x < 0) then
+         sgn = 0
+      else
+         sgn = -1
+      end if
+      end function
