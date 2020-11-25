@@ -89,7 +89,7 @@
       ! (Note: both sides of this equation are the temperature.)
       ! For the chosen p(e) ansatz this diffeq can be analytically
       ! integrated for s(e).  These coefficients (spow, sscale) are used
-      ! in SEOSL7, below.
+      ! in SEOSL7, below.)
       spow = 3/(4*(1 - epow))
       sscale = SEOSdata(EOSne - 1) * (e0**epow/(e0 + p0))**spow
       spowgluon = 3/(4*(1 - epowgluon))
@@ -104,9 +104,9 @@ C====EOS from table===================================================
       double precision :: T0, Time, Teq
 
       if (Teq .EQ. 0) then
-          fug = 1
+         fug = 1
       else
-          fug = 1 - exp((T0 - Time)/Teq)
+         fug = 1 - exp((T0 - Time)/Teq)
       end if
           
       return

@@ -739,6 +739,8 @@ C###############################################################################
 
       Double Precision Time, Teq
       common /Time/ Time, Teq
+
+      double precision :: fug
       
 !** Zhi ***
       Integer :: absI, absJ ! abs(I) and abs(J) used in the loop
@@ -832,7 +834,8 @@ C###############################################################################
      &       CPi00*HbarC, CPi01*HbarC, CPi02*HbarC,
      &       CPi11*HbarC, CPi12*HbarC, CPi22*HbarC,
      &       CPi33*HbarC,
-     &       CPPI*HbarC, temper, epsd, TpropInter, entropy
+     &          CPPI*HbarC, temper, epsd,
+     &       TpropInter, entropy
 
          Enddo  ! Nsurf
 !      ENDIF  ! intersect
