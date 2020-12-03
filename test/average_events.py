@@ -25,16 +25,16 @@ bvals = np.zeros(100000)
         
 # bvals = np.sort(bvals)
 
-with h5py.File('events13.hdf','r') as f:
+with h5py.File('eventsx15n13.hdf','r') as f:
     for dset in f.values():
         profile += np.array(dset)
-        b += dset.attrs['b']
-        npart += dset.attrs['npart']
-        mult += dset.attrs['mult']
-        e2 += dset.attrs['e2']
-        e3 += dset.attrs['e3']
-        e4 += dset.attrs['e4']
-        e5 += dset.attrs['e5']
+        # b += dset.attrs['b']
+        # npart += dset.attrs['npart']
+        # mult += dset.attrs['mult']
+        # e2 += dset.attrs['e2']
+        # e3 += dset.attrs['e3']
+        # e4 += dset.attrs['e4']
+        # e5 += dset.attrs['e5']
         
 profile = profile/100000
 # b = b/100000
@@ -45,4 +45,4 @@ profile = profile/100000
 # e4 = e4/100000
 # e5 = e5/100000
 
-np.save('profile13.npy', profile)
+np.save('profilex15n13.npy', profile)
