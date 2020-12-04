@@ -72,20 +72,16 @@ def run_hydro(fs, event_size, coarse=False, dt_ratio=0.25):
   
     #dt = dxy * dt_ratio
 
-    subprocess.run(['osu-hydro-pce', 'edec=0.1', 't0=0.1', 'teq=5.0', 'dt={}'.format(dt), 'dxy={}'.format(dxy), 'nls={}'.format(ls), 'tfinal=15.0'],  
+    subprocess.run(['osu-hydro', 't0=0.1', 'teq=0.0', 'dt={}'.format(dt), 'dxy={}'.format(dxy), 'nls={}'.format(ls), 'tfinal=15.0', 'VisMin = 0', 'VisSlope = 0', 'VisHRG = 0', 'VisBulkMax = 0'],  
                   check=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
     #print(subprocess.getoutput(['osu-hydro', 't0=0.1', 'teq=5.0', 'dt={}'.format(dt), 'dxy={}'.format(dxy), 'nls={}'.format(ls)]))
-    
-    surface = np.fromfile('surface.dat', dtype='f8').reshape(-1, 20)
+
+    surface = np.fromfile('surface.dat', dtype='f8').reshape(-1, 16)
     
     return dict(
     zip(['x', 'sigma', 'v'], np.hsplit(surface, [3,6,8])),
     pi=dict(zip(['xx','xy','yy'],surface.T[11:14])),
-    Pi=surface.T[15],
-    Temp = surface.T[16],
-    ed = surface.T[17],
-    Tprop=surface.T[18],
-    sd = surface.T[19])
+    Pi=surface.T[15])
 
 def run_single_event(ic):
     """
@@ -113,12 +109,12 @@ rvals = np.sqrt(xvals**2 + yvals**2)
 def fugacity(t):
     return 1 - np.exp((0.1 - t)/5.0)
 
-fugvals = fugacity(results['Tprop'])
+#fugvals = fugacity(results['Tprop'])
 
 
 """ tempvals gives temperature in MeV, evals gives energy density in GeV/fm^3 """
-tempvals = 1000*results['Temp']
-evals = results['ed']
+#tempvals = 1000*results['Temp']
+#evals = results['ed']
 
 plt.rcdefaults()
 plt.style.use(['seaborn-darkgrid', 'seaborn-deep', 'seaborn-notebook'])
@@ -140,17 +136,17 @@ levels = np.arange(0, 400, 1)
 cmap = plt.cm.jet
 plt.xlabel('x (fm)')
 plt.ylabel(r'$\tau$ (fm/c)')
-plt.scatter(rvals, tvals, c = tempvals, cmap=plt.cm.jet, vmin = 0, vmax = 400)
-plt.colorbar(label='T (Mev)')
+plt.scatter(rvals, tvals, c = np.sqrt((results['v']**2).sum(axis=1)), cmap=plt.cm.jet, vmin = 0, vmax = 1)
+plt.colorbar(label=r'$|v|$')
 
 """ Plotting contours """
 r = np.linspace(0, 15, 300)
 t = np.linspace(0, 15, 300)
-plt.title(r'$T_{eq} = 0 fm/c$')
+#plt.title(r'$T_{eq} = 5 fm/c$')
 
-temp = griddata((rvals,tvals),tempvals,(r[None,:],t[:,None]),method='linear')
-cs = plt.contour(r, t, temp, levels=[155, 200, 270, 350], colors='k', linewidths = 0.5)
-plt.clabel(cs, inline=0, fontsize=10)
+# temp = griddata((rvals,tvals),tempvals,(r[None,:],t[:,None]),method='linear')
+# cs = plt.contour(r, t, temp, levels=[155, 200, 270, 350], colors='k', linewidths = 0.5)
+# plt.clabel(cs, inline=0, fontsize=10)
 
 # fug = griddata((rvals,tvals),fugvals,(r[None,:],t[:,None]),method='linear')
 # cs = plt.contour(r, t, fug, levels=[0.25, 0.5, 0.75, 0.9], colors='k', linewidths = 0.5)
