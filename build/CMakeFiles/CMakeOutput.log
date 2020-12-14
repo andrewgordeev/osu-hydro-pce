@@ -1,4 +1,4 @@
-The system is: Linux - 4.15.0-123-generic - x86_64
+The system is: Linux - 4.15.0-126-generic - x86_64
 Compiling the Fortran compiler identification source file "CMakeFortranCompilerId.F" succeeded.
 Compiler: /usr/bin/f95 
 Build flags: 
@@ -17,7 +17,7 @@ Configured with: ../src/configure -v --with-pkgversion='Ubuntu 7.5.0-3ubuntu1~18
 Thread model: posix
 gcc version 7.5.0 (Ubuntu 7.5.0-3ubuntu1~18.04) 
 COLLECT_GCC_OPTIONS='-v' '-shared-libgcc' '-mtune=generic' '-march=x86-64'
- /usr/lib/gcc/x86_64-linux-gnu/7/f951 CMakeFortranCompilerId.F -ffixed-form -cpp=/tmp/ccrvakSv.f90 -quiet -v -imultiarch x86_64-linux-gnu CMakeFortranCompilerId.F -quiet -dumpbase CMakeFortranCompilerId.F -mtune=generic -march=x86-64 -auxbase CMakeFortranCompilerId -version -fintrinsic-modules-path /usr/lib/gcc/x86_64-linux-gnu/7/finclude -o /tmp/cc5hCCtf.s
+ /usr/lib/gcc/x86_64-linux-gnu/7/f951 CMakeFortranCompilerId.F -ffixed-form -cpp=/tmp/cce5w74y.f90 -quiet -v -imultiarch x86_64-linux-gnu CMakeFortranCompilerId.F -quiet -dumpbase CMakeFortranCompilerId.F -mtune=generic -march=x86-64 -auxbase CMakeFortranCompilerId -version -fintrinsic-modules-path /usr/lib/gcc/x86_64-linux-gnu/7/finclude -o /tmp/ccZ0c3Mb.s
 GNU Fortran (Ubuntu 7.5.0-3ubuntu1~18.04) version 7.5.0 (x86_64-linux-gnu)
 	compiled by GNU C version 7.5.0, GMP version 6.1.2, MPFR version 4.0.1, MPC version 1.1.0, isl version isl-0.19-GMP
 
@@ -38,7 +38,7 @@ GNU Fortran2008 (Ubuntu 7.5.0-3ubuntu1~18.04) version 7.5.0 (x86_64-linux-gnu)
 
 GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072
 COLLECT_GCC_OPTIONS='-v' '-shared-libgcc' '-mtune=generic' '-march=x86-64'
- as -v --64 -o /tmp/cc9d3Fx8.o /tmp/cc5hCCtf.s
+ as -v --64 -o /tmp/ccmBuc6S.o /tmp/ccZ0c3Mb.s
 GNU assembler version 2.30 (x86_64-linux-gnu) using BFD version (GNU Binutils for Ubuntu) 2.30
 Reading specs from /usr/lib/gcc/x86_64-linux-gnu/7/libgfortran.spec
 rename spec lib to liborig
@@ -46,7 +46,7 @@ COLLECT_GCC_OPTIONS='-v' '-shared-libgcc' '-mtune=generic' '-march=x86-64'
 COMPILER_PATH=/usr/lib/gcc/x86_64-linux-gnu/7/:/usr/lib/gcc/x86_64-linux-gnu/7/:/usr/lib/gcc/x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/7/:/usr/lib/gcc/x86_64-linux-gnu/
 LIBRARY_PATH=/usr/lib/gcc/x86_64-linux-gnu/7/:/usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/7/../../../../lib/:/lib/x86_64-linux-gnu/:/lib/../lib/:/usr/lib/x86_64-linux-gnu/:/usr/lib/../lib/:/usr/lib/gcc/x86_64-linux-gnu/7/../../../:/lib/:/usr/lib/
 COLLECT_GCC_OPTIONS='-v' '-shared-libgcc' '-mtune=generic' '-march=x86-64'
- /usr/lib/gcc/x86_64-linux-gnu/7/collect2 -plugin /usr/lib/gcc/x86_64-linux-gnu/7/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/7/lto-wrapper -plugin-opt=-fresolution=/tmp/ccVqA984.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lquadmath -plugin-opt=-pass-through=-lm -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -z now -z relro /usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/Scrt1.o /usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/7/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/7 -L/usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/7/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/7/../../.. /tmp/cc9d3Fx8.o -lgfortran -lm -lgcc_s -lgcc -lquadmath -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib/gcc/x86_64-linux-gnu/7/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/crtn.o
+ /usr/lib/gcc/x86_64-linux-gnu/7/collect2 -plugin /usr/lib/gcc/x86_64-linux-gnu/7/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/7/lto-wrapper -plugin-opt=-fresolution=/tmp/ccDZvLNA.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lquadmath -plugin-opt=-pass-through=-lm -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -z now -z relro /usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/Scrt1.o /usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/7/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/7 -L/usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/7/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/7/../../.. /tmp/ccmBuc6S.o -lgfortran -lm -lgcc_s -lgcc -lquadmath -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib/gcc/x86_64-linux-gnu/7/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/crtn.o
 COLLECT_GCC_OPTIONS='-v' '-shared-libgcc' '-mtune=generic' '-march=x86-64'
 
 
@@ -57,29 +57,29 @@ The Fortran compiler identification is GNU, found in "/home/andrew/Documents/Wor
 Determining if the Fortran compiler works passed with the following output:
 Change Dir: /home/andrew/Documents/Work/osu-hydro-pce/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_cd6ca/fast"
-/usr/bin/make -f CMakeFiles/cmTC_cd6ca.dir/build.make CMakeFiles/cmTC_cd6ca.dir/build
+Run Build Command:"/usr/bin/make" "cmTC_a4435/fast"
+/usr/bin/make -f CMakeFiles/cmTC_a4435.dir/build.make CMakeFiles/cmTC_a4435.dir/build
 make[1]: Entering directory '/home/andrew/Documents/Work/osu-hydro-pce/build/CMakeFiles/CMakeTmp'
-Building Fortran object CMakeFiles/cmTC_cd6ca.dir/testFortranCompiler.f.o
-/usr/bin/f95    -c /home/andrew/Documents/Work/osu-hydro-pce/build/CMakeFiles/CMakeTmp/testFortranCompiler.f -o CMakeFiles/cmTC_cd6ca.dir/testFortranCompiler.f.o
-Linking Fortran executable cmTC_cd6ca
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_cd6ca.dir/link.txt --verbose=1
-/usr/bin/f95      CMakeFiles/cmTC_cd6ca.dir/testFortranCompiler.f.o  -o cmTC_cd6ca 
+Building Fortran object CMakeFiles/cmTC_a4435.dir/testFortranCompiler.f.o
+/usr/bin/f95    -c /home/andrew/Documents/Work/osu-hydro-pce/build/CMakeFiles/CMakeTmp/testFortranCompiler.f -o CMakeFiles/cmTC_a4435.dir/testFortranCompiler.f.o
+Linking Fortran executable cmTC_a4435
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_a4435.dir/link.txt --verbose=1
+/usr/bin/f95      CMakeFiles/cmTC_a4435.dir/testFortranCompiler.f.o  -o cmTC_a4435 
 make[1]: Leaving directory '/home/andrew/Documents/Work/osu-hydro-pce/build/CMakeFiles/CMakeTmp'
 
 
 Detecting Fortran compiler ABI info compiled with the following output:
 Change Dir: /home/andrew/Documents/Work/osu-hydro-pce/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_c75e8/fast"
-/usr/bin/make -f CMakeFiles/cmTC_c75e8.dir/build.make CMakeFiles/cmTC_c75e8.dir/build
+Run Build Command:"/usr/bin/make" "cmTC_ecfac/fast"
+/usr/bin/make -f CMakeFiles/cmTC_ecfac.dir/build.make CMakeFiles/cmTC_ecfac.dir/build
 make[1]: Entering directory '/home/andrew/Documents/Work/osu-hydro-pce/build/CMakeFiles/CMakeTmp'
-Building Fortran object CMakeFiles/cmTC_c75e8.dir/CMakeFortranCompilerABI.F.o
-/usr/bin/f95    -c /usr/share/cmake-3.10/Modules/CMakeFortranCompilerABI.F -o CMakeFiles/cmTC_c75e8.dir/CMakeFortranCompilerABI.F.o
-Linking Fortran executable cmTC_c75e8
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_c75e8.dir/link.txt --verbose=1
-/usr/bin/f95   -v   CMakeFiles/cmTC_c75e8.dir/CMakeFortranCompilerABI.F.o  -o cmTC_c75e8 
-Driving: /usr/bin/f95 -v CMakeFiles/cmTC_c75e8.dir/CMakeFortranCompilerABI.F.o -o cmTC_c75e8 -l gfortran -l m -shared-libgcc
+Building Fortran object CMakeFiles/cmTC_ecfac.dir/CMakeFortranCompilerABI.F.o
+/usr/bin/f95    -c /usr/share/cmake-3.10/Modules/CMakeFortranCompilerABI.F -o CMakeFiles/cmTC_ecfac.dir/CMakeFortranCompilerABI.F.o
+Linking Fortran executable cmTC_ecfac
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_ecfac.dir/link.txt --verbose=1
+/usr/bin/f95   -v   CMakeFiles/cmTC_ecfac.dir/CMakeFortranCompilerABI.F.o  -o cmTC_ecfac 
+Driving: /usr/bin/f95 -v CMakeFiles/cmTC_ecfac.dir/CMakeFortranCompilerABI.F.o -o cmTC_ecfac -l gfortran -l m -shared-libgcc
 Using built-in specs.
 COLLECT_GCC=/usr/bin/f95
 COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-linux-gnu/7/lto-wrapper
@@ -91,12 +91,12 @@ Thread model: posix
 gcc version 7.5.0 (Ubuntu 7.5.0-3ubuntu1~18.04) 
 Reading specs from /usr/lib/gcc/x86_64-linux-gnu/7/libgfortran.spec
 rename spec lib to liborig
-COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_c75e8' '-shared-libgcc' '-mtune=generic' '-march=x86-64'
+COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_ecfac' '-shared-libgcc' '-mtune=generic' '-march=x86-64'
 COMPILER_PATH=/usr/lib/gcc/x86_64-linux-gnu/7/:/usr/lib/gcc/x86_64-linux-gnu/7/:/usr/lib/gcc/x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/7/:/usr/lib/gcc/x86_64-linux-gnu/
 LIBRARY_PATH=/usr/lib/gcc/x86_64-linux-gnu/7/:/usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/7/../../../../lib/:/lib/x86_64-linux-gnu/:/lib/../lib/:/usr/lib/x86_64-linux-gnu/:/usr/lib/../lib/:/usr/lib/gcc/x86_64-linux-gnu/7/../../../:/lib/:/usr/lib/
-COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_c75e8' '-shared-libgcc' '-mtune=generic' '-march=x86-64'
- /usr/lib/gcc/x86_64-linux-gnu/7/collect2 -plugin /usr/lib/gcc/x86_64-linux-gnu/7/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/7/lto-wrapper -plugin-opt=-fresolution=/tmp/cc9S1oWh.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lquadmath -plugin-opt=-pass-through=-lm -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -z now -z relro -o cmTC_c75e8 /usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/Scrt1.o /usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/7/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/7 -L/usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/7/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/7/../../.. CMakeFiles/cmTC_c75e8.dir/CMakeFortranCompilerABI.F.o -lgfortran -lm -lgcc_s -lgcc -lquadmath -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib/gcc/x86_64-linux-gnu/7/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/crtn.o
-COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_c75e8' '-shared-libgcc' '-mtune=generic' '-march=x86-64'
+COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_ecfac' '-shared-libgcc' '-mtune=generic' '-march=x86-64'
+ /usr/lib/gcc/x86_64-linux-gnu/7/collect2 -plugin /usr/lib/gcc/x86_64-linux-gnu/7/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/7/lto-wrapper -plugin-opt=-fresolution=/tmp/ccnfOhn3.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lquadmath -plugin-opt=-pass-through=-lm -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -z now -z relro -o cmTC_ecfac /usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/Scrt1.o /usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/7/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/7 -L/usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/7/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/7/../../.. CMakeFiles/cmTC_ecfac.dir/CMakeFortranCompilerABI.F.o -lgfortran -lm -lgcc_s -lgcc -lquadmath -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib/gcc/x86_64-linux-gnu/7/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/crtn.o
+COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_ecfac' '-shared-libgcc' '-mtune=generic' '-march=x86-64'
 make[1]: Leaving directory '/home/andrew/Documents/Work/osu-hydro-pce/build/CMakeFiles/CMakeTmp'
 
 
@@ -104,15 +104,15 @@ Parsed Fortran implicit link information from above output:
   link line regex: [^( *|.*[/\])(ld|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\]+-)?ld|collect2)[^/\]*( |$)]
   ignore line: [Change Dir: /home/andrew/Documents/Work/osu-hydro-pce/build/CMakeFiles/CMakeTmp]
   ignore line: []
-  ignore line: [Run Build Command:"/usr/bin/make" "cmTC_c75e8/fast"]
-  ignore line: [/usr/bin/make -f CMakeFiles/cmTC_c75e8.dir/build.make CMakeFiles/cmTC_c75e8.dir/build]
+  ignore line: [Run Build Command:"/usr/bin/make" "cmTC_ecfac/fast"]
+  ignore line: [/usr/bin/make -f CMakeFiles/cmTC_ecfac.dir/build.make CMakeFiles/cmTC_ecfac.dir/build]
   ignore line: [make[1]: Entering directory '/home/andrew/Documents/Work/osu-hydro-pce/build/CMakeFiles/CMakeTmp']
-  ignore line: [Building Fortran object CMakeFiles/cmTC_c75e8.dir/CMakeFortranCompilerABI.F.o]
-  ignore line: [/usr/bin/f95    -c /usr/share/cmake-3.10/Modules/CMakeFortranCompilerABI.F -o CMakeFiles/cmTC_c75e8.dir/CMakeFortranCompilerABI.F.o]
-  ignore line: [Linking Fortran executable cmTC_c75e8]
-  ignore line: [/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_c75e8.dir/link.txt --verbose=1]
-  ignore line: [/usr/bin/f95   -v   CMakeFiles/cmTC_c75e8.dir/CMakeFortranCompilerABI.F.o  -o cmTC_c75e8 ]
-  ignore line: [Driving: /usr/bin/f95 -v CMakeFiles/cmTC_c75e8.dir/CMakeFortranCompilerABI.F.o -o cmTC_c75e8 -l gfortran -l m -shared-libgcc]
+  ignore line: [Building Fortran object CMakeFiles/cmTC_ecfac.dir/CMakeFortranCompilerABI.F.o]
+  ignore line: [/usr/bin/f95    -c /usr/share/cmake-3.10/Modules/CMakeFortranCompilerABI.F -o CMakeFiles/cmTC_ecfac.dir/CMakeFortranCompilerABI.F.o]
+  ignore line: [Linking Fortran executable cmTC_ecfac]
+  ignore line: [/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_ecfac.dir/link.txt --verbose=1]
+  ignore line: [/usr/bin/f95   -v   CMakeFiles/cmTC_ecfac.dir/CMakeFortranCompilerABI.F.o  -o cmTC_ecfac ]
+  ignore line: [Driving: /usr/bin/f95 -v CMakeFiles/cmTC_ecfac.dir/CMakeFortranCompilerABI.F.o -o cmTC_ecfac -l gfortran -l m -shared-libgcc]
   ignore line: [Using built-in specs.]
   ignore line: [COLLECT_GCC=/usr/bin/f95]
   ignore line: [COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-linux-gnu/7/lto-wrapper]
@@ -124,16 +124,16 @@ Parsed Fortran implicit link information from above output:
   ignore line: [gcc version 7.5.0 (Ubuntu 7.5.0-3ubuntu1~18.04) ]
   ignore line: [Reading specs from /usr/lib/gcc/x86_64-linux-gnu/7/libgfortran.spec]
   ignore line: [rename spec lib to liborig]
-  ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_c75e8' '-shared-libgcc' '-mtune=generic' '-march=x86-64']
+  ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_ecfac' '-shared-libgcc' '-mtune=generic' '-march=x86-64']
   ignore line: [COMPILER_PATH=/usr/lib/gcc/x86_64-linux-gnu/7/:/usr/lib/gcc/x86_64-linux-gnu/7/:/usr/lib/gcc/x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/7/:/usr/lib/gcc/x86_64-linux-gnu/]
   ignore line: [LIBRARY_PATH=/usr/lib/gcc/x86_64-linux-gnu/7/:/usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/7/../../../../lib/:/lib/x86_64-linux-gnu/:/lib/../lib/:/usr/lib/x86_64-linux-gnu/:/usr/lib/../lib/:/usr/lib/gcc/x86_64-linux-gnu/7/../../../:/lib/:/usr/lib/]
-  ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_c75e8' '-shared-libgcc' '-mtune=generic' '-march=x86-64']
-  link line: [ /usr/lib/gcc/x86_64-linux-gnu/7/collect2 -plugin /usr/lib/gcc/x86_64-linux-gnu/7/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/7/lto-wrapper -plugin-opt=-fresolution=/tmp/cc9S1oWh.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lquadmath -plugin-opt=-pass-through=-lm -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -z now -z relro -o cmTC_c75e8 /usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/Scrt1.o /usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/7/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/7 -L/usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/7/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/7/../../.. CMakeFiles/cmTC_c75e8.dir/CMakeFortranCompilerABI.F.o -lgfortran -lm -lgcc_s -lgcc -lquadmath -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib/gcc/x86_64-linux-gnu/7/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/crtn.o]
+  ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_ecfac' '-shared-libgcc' '-mtune=generic' '-march=x86-64']
+  link line: [ /usr/lib/gcc/x86_64-linux-gnu/7/collect2 -plugin /usr/lib/gcc/x86_64-linux-gnu/7/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/7/lto-wrapper -plugin-opt=-fresolution=/tmp/ccnfOhn3.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lquadmath -plugin-opt=-pass-through=-lm -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -z now -z relro -o cmTC_ecfac /usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/Scrt1.o /usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/7/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/7 -L/usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/7/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/7/../../.. CMakeFiles/cmTC_ecfac.dir/CMakeFortranCompilerABI.F.o -lgfortran -lm -lgcc_s -lgcc -lquadmath -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib/gcc/x86_64-linux-gnu/7/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/crtn.o]
     arg [/usr/lib/gcc/x86_64-linux-gnu/7/collect2] ==> ignore
     arg [-plugin] ==> ignore
     arg [/usr/lib/gcc/x86_64-linux-gnu/7/liblto_plugin.so] ==> ignore
     arg [-plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/7/lto-wrapper] ==> ignore
-    arg [-plugin-opt=-fresolution=/tmp/cc9S1oWh.res] ==> ignore
+    arg [-plugin-opt=-fresolution=/tmp/ccnfOhn3.res] ==> ignore
     arg [-plugin-opt=-pass-through=-lgcc_s] ==> ignore
     arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
     arg [-plugin-opt=-pass-through=-lquadmath] ==> ignore
@@ -155,7 +155,7 @@ Parsed Fortran implicit link information from above output:
     arg [-znow] ==> ignore
     arg [-zrelro] ==> ignore
     arg [-o] ==> ignore
-    arg [cmTC_c75e8] ==> ignore
+    arg [cmTC_ecfac] ==> ignore
     arg [/usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/Scrt1.o] ==> ignore
     arg [/usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/crti.o] ==> ignore
     arg [/usr/lib/gcc/x86_64-linux-gnu/7/crtbeginS.o] ==> ignore
@@ -167,7 +167,7 @@ Parsed Fortran implicit link information from above output:
     arg [-L/usr/lib/x86_64-linux-gnu] ==> dir [/usr/lib/x86_64-linux-gnu]
     arg [-L/usr/lib/../lib] ==> dir [/usr/lib/../lib]
     arg [-L/usr/lib/gcc/x86_64-linux-gnu/7/../../..] ==> dir [/usr/lib/gcc/x86_64-linux-gnu/7/../../..]
-    arg [CMakeFiles/cmTC_c75e8.dir/CMakeFortranCompilerABI.F.o] ==> ignore
+    arg [CMakeFiles/cmTC_ecfac.dir/CMakeFortranCompilerABI.F.o] ==> ignore
     arg [-lgfortran] ==> lib [gfortran]
     arg [-lm] ==> lib [m]
     arg [-lgcc_s] ==> lib [gcc_s]
@@ -197,14 +197,14 @@ Parsed Fortran implicit link information from above output:
 Determining if the Fortran compiler supports Fortran 90 passed with the following output:
 Change Dir: /home/andrew/Documents/Work/osu-hydro-pce/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_ec7ca/fast"
-/usr/bin/make -f CMakeFiles/cmTC_ec7ca.dir/build.make CMakeFiles/cmTC_ec7ca.dir/build
+Run Build Command:"/usr/bin/make" "cmTC_42499/fast"
+/usr/bin/make -f CMakeFiles/cmTC_42499.dir/build.make CMakeFiles/cmTC_42499.dir/build
 make[1]: Entering directory '/home/andrew/Documents/Work/osu-hydro-pce/build/CMakeFiles/CMakeTmp'
-Building Fortran object CMakeFiles/cmTC_ec7ca.dir/testFortranCompilerF90.f90.o
-/usr/bin/f95    -c /home/andrew/Documents/Work/osu-hydro-pce/build/CMakeFiles/CMakeTmp/testFortranCompilerF90.f90 -o CMakeFiles/cmTC_ec7ca.dir/testFortranCompilerF90.f90.o
-Linking Fortran executable cmTC_ec7ca
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_ec7ca.dir/link.txt --verbose=1
-/usr/bin/f95      CMakeFiles/cmTC_ec7ca.dir/testFortranCompilerF90.f90.o  -o cmTC_ec7ca 
+Building Fortran object CMakeFiles/cmTC_42499.dir/testFortranCompilerF90.f90.o
+/usr/bin/f95    -c /home/andrew/Documents/Work/osu-hydro-pce/build/CMakeFiles/CMakeTmp/testFortranCompilerF90.f90 -o CMakeFiles/cmTC_42499.dir/testFortranCompilerF90.f90.o
+Linking Fortran executable cmTC_42499
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_42499.dir/link.txt --verbose=1
+/usr/bin/f95      CMakeFiles/cmTC_42499.dir/testFortranCompilerF90.f90.o  -o cmTC_42499 
 make[1]: Leaving directory '/home/andrew/Documents/Work/osu-hydro-pce/build/CMakeFiles/CMakeTmp'
 
 

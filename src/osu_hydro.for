@@ -740,7 +740,7 @@ C###############################################################################
       Double Precision Time, Teq
       common /Time/ Time, Teq
 
-      double precision :: fug
+      double precision :: fug, intersectInt
       
 !** Zhi ***
       Integer :: absI, absJ ! abs(I) and abs(J) used in the loop
@@ -781,6 +781,12 @@ C###############################################################################
        CALL SECTIONCornelius(Edec, intersect, Cube, EPS0, EPS1,
      &                       I,J,NDX,NDY,NX0,NY0,NX,NY)
 
+       if (intersect) then
+          intersectInt = 1.0d0
+       else
+          intersectInt = 0.0d0
+       endif
+       
 !      If (intersect) THEN                  !!! Comment this out to output data for volume elements outside the freezeout surface - Andrew
          NINT = NINT+1
          dSigma = 0.0d0
@@ -835,7 +841,7 @@ C###############################################################################
      &       CPi11*HbarC, CPi12*HbarC, CPi22*HbarC,
      &       CPi33*HbarC,
      &          CPPI*HbarC, temper, epsd,
-     &       TpropInter, entropy
+     &       TpropInter, entropy, intersectInt
 
          Enddo  ! Nsurf
 !      ENDIF  ! intersect
@@ -3096,8 +3102,8 @@ C----------------------------------------------------------------
       if (x > 0) then
          sgn = 1
       else if (x < 0) then
-         sgn = 0
-      else
          sgn = -1
+      else
+         sgn = 0
       end if
       end function
