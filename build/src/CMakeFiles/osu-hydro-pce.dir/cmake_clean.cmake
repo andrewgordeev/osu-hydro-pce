@@ -7,8 +7,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/osu-hydro-pce.dir/osu_hydro.for.o"
   "CMakeFiles/osu-hydro-pce.dir/phy_boundary.for.o"
   "CMakeFiles/osu-hydro-pce.dir/util.for.o"
-  "osu-hydro-pce.pdb"
   "osu-hydro-pce"
+  "osu-hydro-pce.pdb"
 )
 
 # Per-language clean rules from dependency scanning.

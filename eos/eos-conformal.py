@@ -330,7 +330,7 @@ def main():
         p_T4 += p_T4_0
         return p_T4
 
-    p_T4 = 5*compute_p_T4(T)
+    p_T4 = compute_p_T4(T)
     e_T4 = 3*p_T4
 
     if args.plot:
