@@ -223,7 +223,7 @@ def run_events(args, profile, results_file, temp_file, fugacity_file, particles_
 
     """
     # set the grid step size proportionally to the nucleon width
-    grid_step = .6*args.nucleon_width
+    grid_step = .3*args.nucleon_width
     # the "target" grid max: the grid shall be at least as large as the target
     grid_max_target = 15
     # next two lines set the number of grid cells and actual grid max,
