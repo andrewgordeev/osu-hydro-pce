@@ -188,6 +188,7 @@ ic = np.fromfile('ed.dat').reshape(101,101)
 #         ypos = int(round((y+8.9)/0.2))
 #         glauber[xpos, ypos] = e
 
+HBARC = 0.1973269718  # GeV fm
 
 """ 2D scatter plot of temperature (tempvals) over space and time: """
 plt.xlabel('x (fm)')

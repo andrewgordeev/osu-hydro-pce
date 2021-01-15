@@ -23,6 +23,6 @@ y = x
 newprofile = np.zeros((new_grid_size, new_grid_size))
 for j in range(new_grid_size):
     for i in range(new_grid_size):    
-        newprofile[i,j] = gauss(np.sqrt(x[i]**2 + y[j]**2), 0*fit[0], 10*fit[1], 0.8*fit[2])
+        newprofile[i,j] = gauss(np.sqrt(x[i]**2 + y[j]**2), 0, fit[1], fit[2])
         
 np.save('profiles/profilex15n13p1GaussAlt.npy', newprofile)
