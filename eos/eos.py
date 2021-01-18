@@ -154,13 +154,13 @@ def plot(T, e3p_T4, p_T4, e_T4, args, hrg_kwargs):
     Thrg = np.linspace(T[0], args.Tb + .02, 100)
     hrg = HRGEOS(Thrg, **hrg_kwargs)
     p_T4_hrg = hrg.p_T4()
-    e_T4_hrg = 3*hrg.p_T4()
+    e_T4_hrg = hrg.e_T4()
     e3p_T4_hrg = e_T4_hrg - 3*p_T4_hrg
 
     Tlat = np.linspace(args.Ta - .02, T[-1], 1000)
     e3p_T4_lat = e3p_T4_lattice(Tlat)
     p_T4_lat = p_T4_lattice(Tlat)
-    e_T4_lat = 3*p_T4_lat
+    e_T4_lat = e3p_T4_lat + 3*p_T4_lat
 
     with axes('Trace anomaly', '$(\epsilon - 3p)/T^4$') as ax:
         ax.plot(Thrg, e3p_T4_hrg, **ref_line)
@@ -188,7 +188,7 @@ def plot(T, e3p_T4, p_T4, e_T4, args, hrg_kwargs):
             **comp_line
         )
 
-        ax.set_ylim(.1, 1/2)
+        ax.set_ylim(.1, 1/3)
         ax.legend(loc='upper left')
 
     with axes(
@@ -317,7 +317,7 @@ def main():
 
     # join temperature ranges together
     T = np.concatenate([Tl, Tm, Th])
-    e3p_T4 = 0*np.concatenate([e3p_T4_l, e3p_T4_m, e3p_T4_h])
+    e3p_T4 = np.concatenate([e3p_T4_l, e3p_T4_m, e3p_T4_h])
 
     # pressure is integral of trace anomaly over temperature starting from some
     # reference temperature, Eq. (12) in HotQCD paper:
@@ -330,11 +330,8 @@ def main():
         p_T4 += p_T4_0
         return p_T4
 
-
-    Nc = 3
-    Nf = 2.5
-    p_T4 = 1/3 * np.pi**2 * 1/30. * (2*(Nc*Nc-1) + 3.5*Nc*Nf)* np.ones(T.shape)
-    e_T4 = 3*p_T4
+    p_T4 = compute_p_T4(T)
+    e_T4 = e3p_T4 + 3*p_T4
 
     if args.plot:
         plot(T, e3p_T4, p_T4, e_T4, args, hrg_kwargs)
@@ -347,7 +344,7 @@ def main():
     # as required by osu-hydro
     e = np.linspace(e_orig[nextrapts], e_orig[-nextrapts - 1], args.nsteps)
     T = CubicSpline(e_orig, T)(e)
-    p = 1/3 * np.pi**2 * 1/30. * 42.25 * np.ones(T.shape) * T**4 / HBARC**3
+    p = compute_p_T4(T) * T**4 / HBARC**3
     s = (e + p)/T
 
     if args.write_bin:

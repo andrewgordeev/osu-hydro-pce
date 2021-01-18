@@ -16,7 +16,7 @@ x = np.linspace(-15, 15, grid_size)
 y = x
 fit, tmp = curve_fit(gauss, x, profile[:,int(grid_size/2)], p0=[1.,1.,1.])
 
-new_grid_size = 100
+new_grid_size = 200
 x = np.linspace(-15, 15, new_grid_size)
 y = x
 

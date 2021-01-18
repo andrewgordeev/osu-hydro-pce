@@ -330,7 +330,10 @@ def main():
         p_T4 += p_T4_0
         return p_T4
 
-    p_T4 = 1/3 * np.pi**2 * 1/30. * 42.25 * np.ones(T.shape)
+
+    Nc = 3
+    Nf = 3
+    p_T4 = 1/3 * np.pi**2 * 1/30. * (2*(Nc*Nc-1) + 3.5*Nc*Nf) * np.ones(T.shape)
     e_T4 = 3*p_T4
 
     if args.plot:
@@ -344,7 +347,7 @@ def main():
     # as required by osu-hydro
     e = np.linspace(e_orig[nextrapts], e_orig[-nextrapts - 1], args.nsteps)
     T = CubicSpline(e_orig, T)(e)
-    p = p_T4 * T**4 / HBARC**3
+    p = 1/3 * np.pi**2 * 1/30. * (2*(Nc*Nc-1) + 3.5*Nc*Nf) * np.ones(T.shape) * T**4 / HBARC**3
     s = (e + p)/T
 
     if args.write_bin:

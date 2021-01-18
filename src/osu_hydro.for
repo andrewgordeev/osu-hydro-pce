@@ -349,7 +349,8 @@ C-------------------------------------------------------------------------------
      &  PScT11,PScT12,PScT22,etaTtp0,etaTtp,PPI,PISc,XiTtP0,XiTtP,
      &  U0,U1,U2, PU0,PU1,PU2,SxyT,Stotal,StotalBv,StotalSv,
      &  Ed,PL,Sd,Temp0,Temp,T00,T01,T02,IAA,CofAA,PNEW,
-     &  TEM0,ATEM0,EPS0,V10,V20,AEPS0,AV10,AV20,TFREEZ, Tprop)
+     &     TEM0,ATEM0,EPS0,V10,V20,AEPS0,AV10,AV20,TFREEZ, Tprop)
+
        
        do 9999 ITime = 1,MaxT
 !***********************  Begin  Time Loop ********************************
@@ -561,30 +562,30 @@ C-------------------------------------------------------------------------------
           end if
  5999  Continue
       
-! Updating proper time with advection, as per Vovchenko's vHLLE code - Andrew      
-       Do 6999 K = NZ0, NZ
-       Do 6999 J = NY0, NY
-       Do 6999 I = NX0, NX
-          if (Ed(I,J,K) .LE. 0) then
-             Tprop(I,J,K) = Tprop0(I,J,K)
-          else
-             xm = -v1mid * DT/DX
-             ym = -v2mid * DT/DY
-             wx(0) = max(0D0,1 - abs(xm))
-             wx(1) = min(1D0,abs(xm))
-             wy(0) = max(0D0,1 - abs(ym))
-             wy(1) = min(1D0,abs(ym))
-             Tprop(I,J,K) = 0
-          
-             Do 7999 IX = 0,1
-             Do 7999 IY = 0,1
-                Tprop(I,J,K) = Tprop(I,J,K) + wx(IX) * wy(IY)
-     &               * Tprop0(I + IX*sgn(xm), J + IY*sgn(ym), K)
-
- 7999        Continue
-          end if
-          
- 6999  Continue
+c$$$! Updating proper time with advection, as per Vovchenko's vHLLE code - Andrew      
+c$$$       Do 6999 K = NZ0, NZ
+c$$$       Do 6999 J = NY0, NY
+c$$$       Do 6999 I = NX0, NX
+c$$$          if (Ed(I,J,K) .LE. 0) then
+c$$$             Tprop(I,J,K) = Tprop0(I,J,K)
+c$$$          else
+c$$$             xm = -v1mid * DT/DX
+c$$$             ym = -v2mid * DT/DY
+c$$$             wx(0) = max(0D0,1 - abs(xm))
+c$$$             wx(1) = min(1D0,abs(xm))
+c$$$             wy(0) = max(0D0,1 - abs(ym))
+c$$$             wy(1) = min(1D0,abs(ym))
+c$$$             Tprop(I,J,K) = 0
+c$$$          
+c$$$             Do 7999 IX = 0,1
+c$$$             Do 7999 IY = 0,1
+c$$$                Tprop(I,J,K) = Tprop(I,J,K) + wx(IX) * wy(IY)
+c$$$     &               * Tprop0(I + IX*sgn(xm), J + IY*sgn(ym), K)
+c$$$
+c$$$ 7999        Continue
+c$$$          end if
+c$$$          
+c$$$ 6999  Continue
       
 C~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 C~~~~     Freezeout Procedure (rewritten from Petor's code azhydro0p2)  A   ~~~~
@@ -740,7 +741,7 @@ C###############################################################################
       Double Precision Time, Teq
       common /Time/ Time, Teq
 
-      double precision :: fug, intersectInt
+      double precision :: fug, intersectInt, TEOSL7
       
 !** Zhi ***
       Integer :: absI, absJ ! abs(I) and abs(J) used in the loop
@@ -786,7 +787,7 @@ C###############################################################################
        else
           intersectInt = 0.0d0
        endif
-       
+
 !      If (intersect) THEN                  !!! Comment this out to output data for volume elements outside the freezeout surface - Andrew
          NINT = NINT+1
          dSigma = 0.0d0
@@ -840,7 +841,7 @@ C###############################################################################
      &       CPi00*HbarC, CPi01*HbarC, CPi02*HbarC,
      &       CPi11*HbarC, CPi12*HbarC, CPi22*HbarC,
      &       CPi33*HbarC,
-     &          CPPI*HbarC, temper, epsd,
+     &          CPPI*HbarC, TEOSL7(epsd, TpropInter), epsd,
      &       TpropInter, entropy, intersectInt
 
          Enddo  ! Nsurf
