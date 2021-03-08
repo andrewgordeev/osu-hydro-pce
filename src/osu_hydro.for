@@ -157,7 +157,8 @@ C   [5] H.Song, Ph.D thesis 2009, arXiv:0908.3656 [nucl-th].
       MaxT = int(Tfinal/DT)
 
       open(99, file='surface.dat', access='stream', status='replace')
-
+!      close(99)
+      
       call InputRegulatedEOS
 
       NXPhy0=-LS
@@ -175,7 +176,6 @@ C   [5] H.Song, Ph.D thesis 2009, arXiv:0908.3656 [nucl-th].
      &          NXPhy,NYPhy,T0,DX,DY,DZ,DT,MaxT,NDX,NDY,NDT)   ! main program
 
       close(99)
-
       End
 !-----------------------------------------------------------------------
 
@@ -624,8 +624,8 @@ C      NDT = 5
      &     F0Pi00,F0Pi01,F0Pi02,F0Pi33,F0Pi11,F0Pi12,F0Pi22,
      &     FPi00,FPi01,FPi02,FPi33,FPi11,FPi12,FPi22,
      &     F0PPI, FPPI,
-     &     N,T,DX,DY,DT,NXPhy,NYPhy,NX0,NX,NY0,NY, TEM1, TEM0, EdOld,
-     &     MaxT, TempOld, Tprop, TpropOld, Sd, SD0)
+     &     N,T,DX,DY,DT,NXPhy,NYPhy,NX0,NX,NY0,NY,NZ0,NZ,
+     &     TEM1, TEM0, EdOld, MaxT, TempOld, Tprop, TpropOld, Sd, SD0)
 
       DO 5400 J=NY0,NY
       DO 5400 I=NX0,NX
@@ -670,8 +670,8 @@ C###############################################################################
      &     F0Pi00,F0Pi01,F0Pi02,F0Pi33,F0Pi11,F0Pi12,F0Pi22,
      &     FPi00,FPi01,FPi02,FPi33,FPi11,FPi12,FPi22,
      &     F0PPI, FPPI,
-     &     N,T,DX,DY,DT,NXPhy,NYPhy,NX0,NX,NY0,NY, TEM1, TEM0, EdOld,
-     &     MaxT, TempOld, Tprop, TpropOld, Sd, SD0)
+     &     N,T,DX,DY,DT,NXPhy,NYPhy,NX0,NX,NY0,NY,NZ0,NZ,TEM1, TEM0,
+     &     EdOld, MaxT, TempOld, Tprop, TpropOld, Sd, SD0)
 *     a subroutine to calculate the freeze-out surface using cornelius from P. Huovinen
 *     T=Time   N, Timestep for the largest Loop.
       Implicit none
@@ -743,7 +743,10 @@ C###############################################################################
 
       double precision :: fug, intersectInt, TEOSL7
       
-!** Zhi ***
+      Double Precision T0 ! initial time tau_0
+      Common /T0/ T0
+      
+!**   Zhi ***
       Integer :: absI, absJ ! abs(I) and abs(J) used in the loop
       Integer :: I, J
       Integer :: tmpI
@@ -787,8 +790,10 @@ C###############################################################################
        else
           intersectInt = 0.0d0
        endif
-
-!      If (intersect) THEN                  !!! Comment this out to output data for volume elements outside the freezeout surface - Andrew
+      If (MOD((Time-T0),DT) < DT) THEN
+!     If (intersect) THEN                  !!! Comment this out to output data for volume elements outside the freezeout surface - Andrew
+  !     open(100, file='surface.dat', access='stream',
+  !   &  position='append', status = 'old')         
          NINT = NINT+1
          dSigma = 0.0d0
          Nsurf = 0
@@ -834,18 +839,18 @@ C###############################################################################
      &          NX0,NY0,NX,NY,DTFreeze,DXFreeze,DYFreeze,entropy)
            
 
-           write(99)
-     &       Tmid, Xmid, Ymid,
-     &       dSigma(:, iSurf),
-     &       v1mid, v2mid,
-     &       CPi00*HbarC, CPi01*HbarC, CPi02*HbarC,
-     &       CPi11*HbarC, CPi12*HbarC, CPi22*HbarC,
-     &       CPi33*HbarC,
-     &          CPPI*HbarC, TEOSL7(epsd, TpropInter), epsd,
-     &       TpropInter, entropy, intersectInt
-
+           write(99) Tmid, Xmid, Ymid, TEOSL7(epsd, TpropInter)
+    ! &       Tmid, Xmid, Ymid,
+    ! &       dSigma(:, iSurf),
+    ! &       v1mid, v2mid,
+    ! &       CPi00*HbarC, CPi01*HbarC, CPi02*HbarC,
+    ! &       CPi11*HbarC, CPi12*HbarC, CPi22*HbarC,
+    ! &       CPi33*HbarC,
+    ! &          CPPI*HbarC, TEOSL7(epsd, TpropInter), epsd,
+    ! &       TpropInter, entropy, intersectInt
+ !          close(100)
          Enddo  ! Nsurf
-!      ENDIF  ! intersect
+      ENDIF  ! intersect
 
 1911    Continue
  510    CONTINUE
@@ -1356,12 +1361,12 @@ C---J.Liu-----------------------------------------------------------------------
       Implicit double precision (A-H, O-Z)
       
       ! unit of Ed should be GeV/fm^3
-      de = 0.05*Ed
-      p1 = PEOSL7(Ed - de/2., Tprop)
-      p2 = PEOSL7(Ed + de/2., Tprop)
-      cs2 = (p2 - p1)/de   !cs^2 = dP/de
+    !  de = 0.05*Ed
+    !  p1 = PEOSL7(Ed - de/2., Tprop)
+    !  p2 = PEOSL7(Ed + de/2., Tprop)
+    !  cs2 = (p2 - p1)/de   !cs^2 = dP/de
 
-      getCS2 = cs2
+      getCS2 = EOScs2(Ed, Tprop)
       Return
       End
 
@@ -2748,7 +2753,7 @@ C----------------------------------------------------------------
       Double Precision :: RSDM0, RSDM, RSPPI, RSee
       Common /findEdHookData/ RSDM0, RSDM, RSPPI ! M0, M, Pi (see 0510014)
 
-      Double Precision cstilde2 ! energy density from previous iteration, p/e, pressure
+      Double Precision cstilde2, EOScstilde2 ! energy density from previous iteration, p/e, pressure
       ! Note that cstilde2 is NOT dp/de, but rather p/e!!!
 
       Double Precision, Parameter :: zero=1e-30 ! a small number
@@ -2760,7 +2765,7 @@ C----------------------------------------------------------------
       common /Time/ Time, Teq
       
       RSee = RSDM0 - v*RSDM
-      cstilde2=PEOSL7(RSee*Hbarc, Time)/dmax1(abs(RSee),zero)/Hbarc
+      cstilde2=EOScstilde2(dmax1(abs(RSee),zero)*Hbarc, Time)!PEOSL7(RSee*Hbarc, Time)/dmax1(abs(RSee),zero)/Hbarc
       A=RSDM0*(1+cstilde2)+RSPPI
 
       findvHook = v - (2*RSDM)/(A + sqrt(dmax1(A*A
@@ -2786,7 +2791,7 @@ C----------------------------------------------------------------
       Double Precision :: RSDM0, RSDM, RSPPI, RSee
       Common /findEdHookData/ RSDM0, RSDM, RSPPI ! M0, M, Pi (see 0510014)
 
-      Double Precision cstilde2 ! energy density from previous iteration, p/e, pressure
+      Double Precision cstilde2, EOScstilde2 ! energy density from previous iteration, p/e, pressure
       ! Note that cstilde2 is NOT dp/de, but rather p/e!!!
 
       Double Precision, Parameter :: zero=1e-30 ! a small number
@@ -2799,7 +2804,7 @@ C----------------------------------------------------------------
 
       v = sqrt(1 - 1/max(U0, 1d0)**2)
       RSee = RSDM0 - v*RSDM
-      cstilde2=PEOSL7(RSee*Hbarc, Time)/dmax1(abs(RSee),zero)/Hbarc
+      cstilde2=EOScstilde2(dmax1(abs(RSee),zero)*Hbarc,Time)!PEOSL7(RSee*Hbarc, Time)/dmax1(abs(RSee),zero)/Hbarc
       A=RSDM0*(1+cstilde2)+RSPPI
       v = (2*RSDM)/(A+sqrt(dmax1(A*A-4*cstilde2*RSDM*RSDM, 1D-30))
      &              + 1D-30)

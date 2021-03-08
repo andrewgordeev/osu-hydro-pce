@@ -39,7 +39,7 @@ string(APPEND CMAKE_Fortran_FLAGS " -cpp")
 
 option(WARNINGS "enable compiler warnings" OFF)
 if(WARNINGS)
-  string(APPEND CMAKE_Fortran_FLAGS " -Wall -Wextra")
+  string(APPEND CMAKE_Fortran_FLAGS " -fcheck=all -Wall -Wextra")
 endif()
 
 install(FILES ${PROJECT_NAME}.conf DESTINATION share/${PROJECT_NAME})

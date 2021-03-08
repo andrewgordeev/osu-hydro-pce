@@ -18,7 +18,7 @@ Generating plots 4-6 from arXiv:160406346v3 (Vovchenko electromagnetic probes pa
 Much of the code is adapted from hic-eventgen's run-events at https://github.com/Duke-QCD/hic-eventgen
 """
 
-grid_step = 30./100.
+grid_step = 30./500.
 grid_n = math.ceil(2*15/grid_step)
 grid_max = 0.5*grid_n*grid_step
 
@@ -93,21 +93,25 @@ def run_hydro(fs, event_size, coarse=False, dt_ratio=0.25, profile=None):
 
     dt = dxy * dt_ratio
 
-    subprocess.run(['osu-hydro-pce', 'edec=0.0001', 't0=0.4', 'teq=0.0', 'dt={}'.format(dt), 'dxy={}'.format(dxy), 'nls={}'.format(ls), 'tfinal=12.0', 'VisSlope = 0', 'VisHRG = 0.08', 'VisBulkMax = 0', 'VisMin = 0.08', 'ViscousEqsType = 1', 'InitialURead = 0'],  #'VisSlope = 0', 'VisHRG = 0.08', 'VisBulkMax = 0', 'VisMin = 0.08' 
+    import time
+    start = time.time()
+    subprocess.run(['osu-hydro-pce', 'edec=0.01', 't0=0.4', 'teq=0.0', 'dt={}'.format(dt), 'dxy={}'.format(dxy), 'nls={}'.format(ls), 'tfinal=10.0', 'VisSlope = 0', 'VisHRG = 0.00', 'VisBulkMax = 0', 'VisMin = 0.0', 'InitialURead = 0'],  #'VisSlope = 0', 'VisHRG = 0.08', 'VisBulkMax = 0', 'VisMin = 0.08' 
                  check=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
-    #print(subprocess.getoutput(['osu-hydro-pce', 'edec=0.1', 't0=0.4', 'teq=0.0', 'dt={}'.format(dt), 'dxy={}'.format(dxy), 'nls={}'.format(ls), 'tfinal=15.0', 'VisSlope = 0', 'VisHRG = 0.0', 'VisBulkMax = 0', 'VisMin = 0.0', 'ViscousEqsType = 1']))
-
-    surface = np.fromfile('surface.dat', dtype='f8').reshape(-1, 21)
+   # print(subprocess.getoutput(['osu-hydro-pce', 'edec=0.1', 't0=0.4', 'teq=0.0', 'dt={}'.format(dt), 'dxy={}'.format(dxy), 'nls={}'.format(ls), 'tfinal=15.0', 'VisSlope = 0', 'VisHRG = 0.0', 'VisBulkMax = 0', 'VisMin = 0.0', 'ViscousEqsType = 1']))
+    end = time.time()
+    print(end-start)
+    surface = np.fromfile('surface.dat', dtype='f8').reshape(-1, 4)
+  #  surface.tofile('surfaceAlt.dat')
     
     return dict(
-    zip(['x', 'sigma', 'v'], np.hsplit(surface, [3,6,8])),
-    pi=dict(zip(['xx','xy','yy'],surface.T[11:14])),
-    Pi=surface.T[15],
-    Temp = surface.T[16],
-    ed = surface.T[17],
-    Tprop=surface.T[18],
-    sd = surface.T[19],
-    intersect = surface.T[20])
+    zip(['x'], np.hsplit(surface, [3])),
+    #pi=dict(zip(['xx','xy','yy'],surface.T[11:14])),
+    #Pi=surface.T[15],
+    Temp = surface.T[3])#,
+    #ed = surface.T[17],
+   # Tprop=surface.T[18]),
+   # sd = surface.T[19],
+   # intersect = surface.T[20])
 
 def run_single_event(ic):
     """
@@ -118,13 +122,14 @@ def run_single_event(ic):
     fs = freestream.FreeStreamer(ic, grid_max, 0.1)
     # rmax = math.sqrt((run_hydro(fs, event_size=27, coarse=3)['x'][:,1:3]**2).sum(axis=1).max())
     # print(rmax)
-    results = run_hydro(fs, event_size=15., profile=ic)
+    results = run_hydro(fs, event_size=15, profile=ic)
     return results
 
 """ Read in profile """
-profile = np.load('profiles/profileTempGauss.npy')
+profile = np.load('profiles/profileTempGauss500.npy')
 
 results = run_single_event(profile)
+print("1")
 #surface = frzout.Surface(**results, ymax=2)   
 tvals = results['x'][:,0]
 xvals = results['x'][:,1]
@@ -135,13 +140,13 @@ rvals = np.sqrt(xvals**2 + yvals**2)
 def fugacity(t):
     return 1 - np.exp((0.1 - t)/5.0)
 
-fugvals = fugacity(results['Tprop'])
+#fugvals = fugacity(results['Tprop'])
 
 
 """ tempvals gives temperature in MeV, evals gives energy density in GeV/fm^3 """
 tempvals = 1000*results['Temp']
-evals = results['ed']
-intersect = results["intersect"]
+#evals = results['ed']
+#intersect = results["intersect"]
 
 plt.rcdefaults()
 plt.style.use(['seaborn-darkgrid', 'seaborn-deep', 'seaborn-notebook'])
@@ -159,7 +164,7 @@ plt.rcParams.update({
 plt.figure(figsize=(7,5))
 
 """ Initial condition tests """
-ic = np.fromfile('ed.dat').reshape(grid_n + 1, grid_n + 1)
+#ic = np.fromfile('ed.dat').reshape(grid_n + 1, grid_n + 1)
 #plt.plot(ic[51,:])
 
 # rg = np.array([])
@@ -188,21 +193,25 @@ ic = np.fromfile('ed.dat').reshape(grid_n + 1, grid_n + 1)
 #         glauber[xpos, ypos] = e
 
 """ 2D scatter plot of temperature (tempvals) over space and time: """
-# plt.xlabel('x (fm)')
-# plt.ylabel(r'$\tau$ (fm/c)')
-# plt.scatter(rvals, tvals, c = tempvals, cmap=plt.cm.jet, vmin = 0, vmax = 400)
-# plt.colorbar(label='T (MeV)', extend='both')
+plt.xlabel('x (fm)')
+plt.ylabel(r'$\tau$ (fm/c)')
+print("2")
+plt.scatter(rvals[::50], tvals[::50], c = tempvals[::50], cmap=plt.cm.jet, vmin = 0, vmax = 400)
+plt.ylim(0,16)
+plt.colorbar(label='T (MeV)', extend='both')
 
 
-# """ Plotting contours """
-# r = np.linspace(0, 15, 50)
-# t = np.linspace(0, 15, 50)
-# plt.ylim(0,15)
-# plt.title(r'$T_{eq} = 0 fm/c$')
 
-# temp = griddata((rvals,tvals),tempvals,(r[None,:],t[:,None]),method='linear')
-# cs = plt.contour(r, t, temp, levels=[155, 200, 270, 350], colors='k', linewidths = 0.5, extend='both')
-# plt.clabel(cs, inline=0, fontsize=10)
+
+""" Plotting contours """
+r = np.linspace(0, 15, 50)
+t = np.linspace(0.4, 5, 50)
+plt.title(r'$T_{eq} = 0 fm/c$')
+            
+
+temp = griddata((rvals[::50],tvals[::50]),tempvals[::50],(r[None,:],t[:,None]),method='nearest')
+cs = plt.contour(r, t, temp, levels=[10, 25, 50, 75, 100, 200, 400], colors='k', linewidths = 0.5, extend='both')
+plt.clabel(cs, inline=0, fontsize=10)
 
 
 """ 2D scatter plot of fugacity (fugvals) over space and time: """

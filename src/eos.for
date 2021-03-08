@@ -1,6 +1,7 @@
 #include "defs.h"
 
-!!!   Modified to take energy, entropy, temperature, and pressure from both eos.dat and eos-gluon.dat, then interpolate using fugacity factor given by fug(T0, Time, Teq) - Andrew
+!!!   Modified to take energy, entropy, temperature, and pressure from both eos.dat and eos-gluon.dat, then interpolate using fugacity factor given by fug(T0, Time, Teq)
+!!!   Additionally modified to use uniform spacing in temperature rather than energy density - Andrew
       
       Subroutine InputRegulatedEOS
       Implicit none
@@ -9,49 +10,51 @@
 
       double precision :: PEOSdata(EOSDATALENGTH),
      &                    SEOSdata(EOSDATALENGTH),
-     &                    TEOSdata(EOSDATALENGTH)
-      integer, parameter :: EOSGLUONDATALENGTH = EOSDATALENGTH
+     &                    EEOSdata(EOSDATALENGTH),
+     &                    EOScs2data(EOSDATALENGTH),
+     &                    EOScstilde2data(EOSDATALENGTH)
       double precision :: PEOSgluondata(EOSGLUONDATALENGTH),
      &                    SEOSgluondata(EOSGLUONDATALENGTH),
-     &                    TEOSgluondata(EOSGLUONDATALENGTH)
-      common /EOSdata/PEOSdata, SEOSdata, TEOSdata, PEOSgluondata,
-     & SEOSgluondata, TEOSgluondata
+     &                    EEOSgluondata(EOSGLUONDATALENGTH),
+     &                    EOScs2gluondata(EOSGLUONDATALENGTH),
+     &                    EOScstilde2gluondata(EOSGLUONDATALENGTH)
+      common /EOSdata/PEOSdata, SEOSdata, EEOSdata, EOScs2data,
+     &     EOScstilde2data, PEOSgluondata, SEOSgluondata, EEOSgluondata,
+     &     EOScs2gluondata, EOScstilde2gluondata
 
-      double precision :: EOSe0         ! min (first) energy density
-      double precision :: EOSde         ! energy density step
-      double precision :: EOSEend       ! max (last) energy density
-      Integer :: EOSne = EOSDATALENGTH ! number of table rows
-      double precision :: EOSgluone0         ! min (first) energy density
-      double precision :: EOSgluonde         ! energy density step
-      double precision :: EOSgluonEend       ! max (last) energy density
-      Integer :: EOSgluonne = EOSGLUONDATALENGTH  ! number of table rows
-      common /EOSdatastructure/ EOSe0, EOSde, EOSEend,
-     & EOSgluone0, EOSgluonde, EOSgluonEend, EOSne, EOSgluonne
+      double precision :: EOST0, EOSe0         ! min (first) temperature
+      double precision :: EOSdT, EOSde         ! temperature step
+      double precision :: EOSTend, EOSEend       ! max (last) temperature
+      Integer :: EOSnT = EOSDATALENGTH ! number of table rows
+      double precision :: EOSgluonT0, EOSgluone0        ! min (first) temperature
+      double precision :: EOSgluondT, EOSgluonde         ! temperature step
+      double precision :: EOSgluonTend, EOSgluonEend       ! max (last) temperature
+      Integer :: EOSgluonnT = EOSGLUONDATALENGTH  ! number of table rows
+      common /EOSdatastructure/ EOST0, EOSdT, EOSTend,
+     & EOSgluonT0, EOSgluondT, EOSgluonTend, EOSnT, EOSgluonnT
       
       double precision :: escale, epow, sscale, spow
       double precision :: escalegluon, epowgluon, sscalegluon, spowgluon
       common /EOScoeffs/ escale, epow, sscale, spow, escalegluon,
-     & epowgluon, sscalegluon, spowgluon
-
-      
+     & epowgluon, sscalegluon, spowgluon      
 
       character(len=1000) :: find_data_file
 
       ! read EOS data from binary file
       open(5, file=find_data_file('eos.dat'), status='old',
      &     access='stream')
-      read(5) EOSe0, EOSEend, PEOSdata, SEOSdata, TEOSdata
+      read(5) EOST0, EOSTend, PEOSdata, SEOSdata, EEOSdata
       close(5)
 
       open(6, file=find_data_file('eos-gluon.dat'), status='old',
      &     access='stream')
-      read(6) EOSgluone0, EOSgluonEend, PEOSgluondata, SEOSgluondata,
-     &     TEOSgluondata
+      read(6) EOSgluonT0, EOSgluonTend, PEOSgluondata, SEOSgluondata,
+     &     EEOSgluondata
       close(6)
      
-      ! save energy density step size
-      EOSde = (EOSEend - EOSe0)/(EOSne - 1)
-      EOSgluonde = (EOSgluonEend - EOSgluone0)/(EOSgluonne - 1)
+      ! save temp step size
+      EOSdT = (EOSTend - EOST0)/(EOSnT - 1)
+      EOSgluondT = (EOSgluonTend - EOSgluonT0)/(EOSgluonnT - 1)
 
       ! Prepare for extrapolating EOS beyond end of table.
       ! Assume a modified power-law ansatz for pressure in the high
@@ -66,13 +69,12 @@
       ! energy density e0.  Use the second-to-last table entry as the
       ! reference point and estimate the derivative using a finite
       ! difference.
-      e0 = EOSEend - EOSde
-      p0 = PEOSdata(EOSne - 1)
-      cs2 = (PEOSdata(EOSne) - PEOSdata(EOSne - 2)) / (2*EOSde)
-      e0gluon = EOSgluonEend - EOSgluonde
-      p0gluon = PEOSgluondata(EOSgluonne - 1)
-      cs2gluon = (PEOSgluondata(EOSgluonne) -
-     & PEOSgluondata(EOSgluonne - 2)) / (2*EOSgluonde)
+      e0 = EEOSdata(EOSnT - 1)
+      p0 = PEOSdata(EOSnT - 1)
+      cs2 = EOScs2data(EOSnT)
+      e0gluon = EEOSgluondata(EOSgluonnT - 1)
+      p0gluon = PEOSgluondata(EOSgluonnT - 1)
+      cs2gluon = EOScs2gluondata(EOSgluonnT)
 
       ! Use variable 'epow' for the exponent 'b' and 'escale' for the
       ! scale factor 'a'.
@@ -91,9 +93,9 @@
       ! integrated for s(e).  These coefficients (spow, sscale) are used
       ! in SEOSL7, below.)
       spow = 3/(4*(1 - epow))
-      sscale = SEOSdata(EOSne - 1) * (e0**epow/(e0 + p0))**spow
+      sscale = SEOSdata(EOSnT - 1) * (e0**epow/(e0 + p0))**spow
       spowgluon = 3/(4*(1 - epowgluon))
-      sscalegluon = SEOSgluondata(EOSgluonne - 1)
+      sscalegluon = SEOSgluondata(EOSgluonnT - 1)
      & * (e0gluon**epowgluon/(e0gluon + p0gluon))**spowgluon
 
       end
@@ -115,28 +117,32 @@ C====EOS from table===================================================
       Double Precision Function PEOSL7qcd(e) ! for lattice P(e)
       Implicit none
 
-      double precision :: e
+      double precision :: e, TEOSL7qcd
 
       double precision :: PEOSdata(EOSDATALENGTH),
      &                    SEOSdata(EOSDATALENGTH),
-     &     TEOSdata(EOSDATALENGTH)
-      integer,parameter :: EOSGLUONDATALENGTH = EOSDATALENGTH
+     &                    EEOSdata(EOSDATALENGTH),
+     &                    EOScs2data(EOSDATALENGTH),
+     &                    EOScstilde2data(EOSDATALENGTH)
       double precision :: PEOSgluondata(EOSGLUONDATALENGTH),
      &                    SEOSgluondata(EOSGLUONDATALENGTH),
-     &                    TEOSgluondata(EOSGLUONDATALENGTH)
-      common /EOSdata/PEOSdata, SEOSdata, TEOSdata, PEOSgluondata,
-     & SEOSgluondata, TEOSgluondata
+     &                    EEOSgluondata(EOSGLUONDATALENGTH),
+     &                    EOScs2gluondata(EOSGLUONDATALENGTH),
+     &                    EOScstilde2gluondata(EOSGLUONDATALENGTH)
+      common /EOSdata/PEOSdata, SEOSdata, EEOSdata, EOScs2data,
+     &     EOScstilde2data, PEOSgluondata, SEOSgluondata, EEOSgluondata,
+     &     EOScs2gluondata, EOScstilde2gluondata
 
-      double precision :: EOSe0         ! min (first) energy density
-      double precision :: EOSde         ! energy density step
-      double precision :: EOSEend       ! max (last) energy density
-      Integer :: EOSne = EOSDATALENGTH ! number of table rows
-      double precision :: EOSgluone0         ! min (first) energy density
-      double precision :: EOSgluonde         ! energy density step
-      double precision :: EOSgluonEend       ! max (last) energy density
-      Integer :: EOSgluonne = EOSGLUONDATALENGTH  ! number of table rows
-      common /EOSdatastructure/ EOSe0, EOSde, EOSEend,
-     & EOSgluone0, EOSgluonde, EOSgluonEend, EOSne, EOSgluonne
+      double precision :: EOST0, EOSe0         ! min (first) temperature
+      double precision :: EOSdT, EOSde         ! temperature step
+      double precision :: EOSTend, EOSEend       ! max (last) temperature
+      Integer :: EOSnT = EOSDATALENGTH ! number of table rows
+      double precision :: EOSgluonT0, EOSgluone0        ! min (first) temperature
+      double precision :: EOSgluondT, EOSgluonde         ! temperature step
+      double precision :: EOSgluonTend, EOSgluonEend       ! max (last) temperature
+      Integer :: EOSgluonnT = EOSGLUONDATALENGTH  ! number of table rows
+      common /EOSdatastructure/ EOST0, EOSdT, EOSTend,
+     & EOSgluonT0, EOSgluondT, EOSgluonTend, EOSnT, EOSgluonnT
       
       double precision :: escale, epow, sscale, spow
       double precision :: escalegluon, epowgluon, sscalegluon, spowgluon
@@ -148,10 +154,11 @@ C====EOS from table===================================================
       
       e = abs(e)
 
-      if (e.lt.EOSe0) then
-        PEOSL7qcd = PEOSdata(1)*e/EOSe0
-      else if (e.lt.EOSEend) then
-        call interpCubic(PEOSdata, EOSne, EOSe0, EOSde, e, PEOSL7qcd)
+      if (e .lt. EEOSdata(1)) then
+         PEOSL7qcd = PEOSdata(1)*e/EEOSdata(1)
+      else if (e.lt.EEOSdata(EOSnT)) then
+         call interpCubic(PEOSdata, EOSnT, EOST0, EOSdT,
+     &    TEOSL7qcd(e), PEOSL7qcd)
       else
         ! extrapolate, see notes above
         PEOSL7qcd = e/3 + escale*e**epow
@@ -163,28 +170,32 @@ C====EOS from table===================================================
       Double Precision Function PEOSL7gluon(e) ! for lattice P(e)
       Implicit none
 
-      double precision :: e
+      double precision :: e, TEOSL7gluon
 
       double precision :: PEOSdata(EOSDATALENGTH),
      &                    SEOSdata(EOSDATALENGTH),
-     &     TEOSdata(EOSDATALENGTH)
-      integer,parameter :: EOSGLUONDATALENGTH = EOSDATALENGTH
+     &                    EEOSdata(EOSDATALENGTH),
+     &                    EOScs2data(EOSDATALENGTH),
+     &                    EOScstilde2data(EOSDATALENGTH)
       double precision :: PEOSgluondata(EOSGLUONDATALENGTH),
      &                    SEOSgluondata(EOSGLUONDATALENGTH),
-     &                    TEOSgluondata(EOSGLUONDATALENGTH)
-      common /EOSdata/PEOSdata, SEOSdata, TEOSdata, PEOSgluondata,
-     & SEOSgluondata, TEOSgluondata
+     &                    EEOSgluondata(EOSGLUONDATALENGTH),
+     &                    EOScs2gluondata(EOSGLUONDATALENGTH),
+     &                    EOScstilde2gluondata(EOSGLUONDATALENGTH)
+      common /EOSdata/PEOSdata, SEOSdata, EEOSdata, EOScs2data,
+     &     EOScstilde2data, PEOSgluondata, SEOSgluondata, EEOSgluondata,
+     &     EOScs2gluondata, EOScstilde2gluondata
 
-      double precision :: EOSe0         ! min (first) energy density
-      double precision :: EOSde         ! energy density step
-      double precision :: EOSEend       ! max (last) energy density
-      Integer :: EOSne = EOSDATALENGTH ! number of table rows
-      double precision :: EOSgluone0         ! min (first) energy density
-      double precision :: EOSgluonde         ! energy density step
-      double precision :: EOSgluonEend       ! max (last) energy density
-      Integer :: EOSgluonne = EOSGLUONDATALENGTH  ! number of table rows
-      common /EOSdatastructure/ EOSe0, EOSde, EOSEend,
-     & EOSgluone0, EOSgluonde, EOSgluonEend, EOSne, EOSgluonne
+      double precision :: EOST0, EOSe0         ! min (first) temperature
+      double precision :: EOSdT, EOSde         ! temperature step
+      double precision :: EOSTend, EOSEend       ! max (last) temperature
+      Integer :: EOSnT = EOSDATALENGTH ! number of table rows
+      double precision :: EOSgluonT0, EOSgluone0        ! min (first) temperature
+      double precision :: EOSgluondT, EOSgluonde         ! temperature step
+      double precision :: EOSgluonTend, EOSgluonEend       ! max (last) temperature
+      Integer :: EOSgluonnT = EOSGLUONDATALENGTH  ! number of table rows
+      common /EOSdatastructure/ EOST0, EOSdT, EOSTend,
+     & EOSgluonT0, EOSgluondT, EOSgluonTend, EOSnT, EOSgluonnT
       
       double precision :: escale, epow, sscale, spow
       double precision :: escalegluon, epowgluon, sscalegluon, spowgluon
@@ -196,16 +207,16 @@ C====EOS from table===================================================
       
       e = abs(e)
 
-      if (e.lt.EOSgluone0) then
-        PEOSL7gluon = PEOSgluondata(1)*e/EOSgluone0
-      else if (e.lt.EOSgluonEend) then
-         call interpCubic(PEOSgluondata, EOSgluonne, EOSgluone0,
-     &    EOSgluonde, e, PEOSL7gluon)
+      if (e.lt.EEOSgluondata(1)) then
+        PEOSL7gluon = PEOSgluondata(1)*e/EEOSgluondata(1)
+      else if (e.lt.EEOSgluondata(EOSgluonnT)) then
+         call interpCubic(PEOSgluondata, EOSgluonnT, EOSgluonT0,
+     &    EOSgluondT, TEOSL7gluon(e), PEOSL7gluon)
       else
         ! extrapolate, see notes above
          PEOSL7gluon = e/3 + escalegluon*e**epowgluon
       endif     
-      
+
       return
       end
       
@@ -216,24 +227,28 @@ C====EOS from table===================================================
 
       double precision :: PEOSdata(EOSDATALENGTH),
      &                    SEOSdata(EOSDATALENGTH),
-     &     TEOSdata(EOSDATALENGTH)
-      integer,parameter :: EOSGLUONDATALENGTH = EOSDATALENGTH
+     &                    EEOSdata(EOSDATALENGTH),
+     &                    EOScs2data(EOSDATALENGTH),
+     &                    EOScstilde2data(EOSDATALENGTH)
       double precision :: PEOSgluondata(EOSGLUONDATALENGTH),
      &                    SEOSgluondata(EOSGLUONDATALENGTH),
-     &                    TEOSgluondata(EOSGLUONDATALENGTH)
-      common /EOSdata/PEOSdata, SEOSdata, TEOSdata, PEOSgluondata,
-     & SEOSgluondata, TEOSgluondata
+     &                    EEOSgluondata(EOSGLUONDATALENGTH),
+     &                    EOScs2gluondata(EOSGLUONDATALENGTH),
+     &                    EOScstilde2gluondata(EOSGLUONDATALENGTH)
+      common /EOSdata/PEOSdata, SEOSdata, EEOSdata, EOScs2data,
+     &     EOScstilde2data, PEOSgluondata, SEOSgluondata, EEOSgluondata,
+     &     EOScs2gluondata, EOScstilde2gluondata
 
-      double precision :: EOSe0         ! min (first) energy density
-      double precision :: EOSde         ! energy density step
-      double precision :: EOSEend       ! max (last) energy density
-      Integer :: EOSne = EOSDATALENGTH ! number of table rows
-      double precision :: EOSgluone0         ! min (first) energy density
-      double precision :: EOSgluonde         ! energy density step
-      double precision :: EOSgluonEend       ! max (last) energy density
-      Integer :: EOSgluonne = EOSGLUONDATALENGTH  ! number of table rows
-      common /EOSdatastructure/ EOSe0, EOSde, EOSEend,
-     & EOSgluone0, EOSgluonde, EOSgluonEend, EOSne, EOSgluonne
+      double precision :: EOST0, EOSe0         ! min (first) temperature
+      double precision :: EOSdT, EOSde         ! temperature step
+      double precision :: EOSTend, EOSEend       ! max (last) temperature
+      Integer :: EOSnT = EOSDATALENGTH ! number of table rows
+      double precision :: EOSgluonT0, EOSgluone0        ! min (first) temperature
+      double precision :: EOSgluondT, EOSgluonde         ! temperature step
+      double precision :: EOSgluonTend, EOSgluonEend       ! max (last) temperature
+      Integer :: EOSgluonnT = EOSGLUONDATALENGTH  ! number of table rows
+      common /EOSdatastructure/ EOST0, EOSdT, EOSTend,
+     & EOSgluonT0, EOSgluondT, EOSgluonTend, EOSnT, EOSgluonnT
       
       double precision :: escale, epow, sscale, spow
       double precision :: escalegluon, epowgluon, sscalegluon, spowgluon
@@ -252,7 +267,7 @@ C====EOS from table===================================================
       
       e = abs(e)
 
-      PEOSL7 = fugacity * PEOSL7qcd(e) + (1 - fugacity) * PEOSL7gluon(e)
+      PEOSL7 = e/3d0 !fugacity * PEOSL7qcd(e) + (1 - fugacity) * PEOSL7gluon(e)
       
       return
       end      
@@ -261,28 +276,32 @@ C====EOS from table===================================================
       Implicit none
 
       double precision :: e
-      double precision :: PEOSL7qcd
+      double precision :: PEOSL7qcd, TEOSL7qcd
      
       double precision :: PEOSdata(EOSDATALENGTH),
      &                    SEOSdata(EOSDATALENGTH),
-     &                    TEOSdata(EOSDATALENGTH)
-      integer,parameter :: EOSGLUONDATALENGTH = EOSDATALENGTH
+     &                    EEOSdata(EOSDATALENGTH),
+     &                    EOScs2data(EOSDATALENGTH),
+     &                    EOScstilde2data(EOSDATALENGTH)
       double precision :: PEOSgluondata(EOSGLUONDATALENGTH),
      &                    SEOSgluondata(EOSGLUONDATALENGTH),
-     &                    TEOSgluondata(EOSGLUONDATALENGTH)
-      common /EOSdata/PEOSdata, SEOSdata, TEOSdata, PEOSgluondata,
-     & SEOSgluondata, TEOSgluondata
+     &                    EEOSgluondata(EOSGLUONDATALENGTH),
+     &                    EOScs2gluondata(EOSGLUONDATALENGTH),
+     &                    EOScstilde2gluondata(EOSGLUONDATALENGTH)
+      common /EOSdata/PEOSdata, SEOSdata, EEOSdata, EOScs2data,
+     &     EOScstilde2data, PEOSgluondata, SEOSgluondata, EEOSgluondata,
+     &     EOScs2gluondata, EOScstilde2gluondata
 
-      double precision :: EOSe0         ! min (first) energy density
-      double precision :: EOSde         ! energy density step
-      double precision :: EOSEend       ! max (last) energy density
-      Integer :: EOSne = EOSDATALENGTH ! number of table rows
-      double precision :: EOSgluone0         ! min (first) energy density
-      double precision :: EOSgluonde         ! energy density step
-      double precision :: EOSgluonEend       ! max (last) energy density
-      Integer :: EOSgluonne = EOSGLUONDATALENGTH  ! number of table rows
-      common /EOSdatastructure/ EOSe0, EOSde, EOSEend,
-     & EOSgluone0, EOSgluonde, EOSgluonEend, EOSne, EOSgluonne
+      double precision :: EOST0, EOSe0         ! min (first) temperature
+      double precision :: EOSdT, EOSde         ! temperature step
+      double precision :: EOSTend, EOSEend       ! max (last) temperature
+      Integer :: EOSnT = EOSDATALENGTH ! number of table rows
+      double precision :: EOSgluonT0, EOSgluone0        ! min (first) temperature
+      double precision :: EOSgluondT, EOSgluonde         ! temperature step
+      double precision :: EOSgluonTend, EOSgluonEend       ! max (last) temperature
+      Integer :: EOSgluonnT = EOSGLUONDATALENGTH  ! number of table rows
+      common /EOSdatastructure/ EOST0, EOSdT, EOSTend,
+     & EOSgluonT0, EOSgluondT, EOSgluonTend, EOSnT, EOSgluonnT
       
       double precision :: escale, epow, sscale, spow
       double precision :: escalegluon, epowgluon, sscalegluon, spowgluon
@@ -294,10 +313,11 @@ C====EOS from table===================================================
 
       e = abs(e)
 
-      if (e.lt.EOSe0) then
-        SEOSL7qcd = SEOSdata(1)*e/EOSe0
-      else if (e.lt.EOSEend) then
-        call interpCubic(SEOSdata, EOSne, EOSe0, EOSde, e, SEOSL7qcd)
+      if (e.lt.EEOSdata(1)) then
+        SEOSL7qcd = SEOSdata(1)*e/EEOSdata(1)
+      else if (e.lt.EEOSdata(EOSnT)) then
+         call interpCubic(SEOSdata, EOSnT, EOST0, EOSdT, TEOSL7qcd(e),
+     &    SEOSL7qcd)
       else
         ! extrapolate, see notes above
         SEOSL7qcd = sscale * ((e + PEOSL7qcd(e))/e**epow)**spow
@@ -310,28 +330,32 @@ C====EOS from table===================================================
       Implicit none
 
       double precision :: e
-      double precision :: PEOSL7gluon
+      double precision :: PEOSL7gluon, TEOSL7gluon
      
       double precision :: PEOSdata(EOSDATALENGTH),
      &                    SEOSdata(EOSDATALENGTH),
-     &                    TEOSdata(EOSDATALENGTH)
-      integer,parameter :: EOSGLUONDATALENGTH = EOSDATALENGTH
+     &                    EEOSdata(EOSDATALENGTH),
+     &                    EOScs2data(EOSDATALENGTH),
+     &                    EOScstilde2data(EOSDATALENGTH)
       double precision :: PEOSgluondata(EOSGLUONDATALENGTH),
      &                    SEOSgluondata(EOSGLUONDATALENGTH),
-     &                    TEOSgluondata(EOSGLUONDATALENGTH)
-      common /EOSdata/PEOSdata, SEOSdata, TEOSdata, PEOSgluondata,
-     & SEOSgluondata, TEOSgluondata
+     &                    EEOSgluondata(EOSGLUONDATALENGTH),
+     &                    EOScs2gluondata(EOSGLUONDATALENGTH),
+     &                    EOScstilde2gluondata(EOSGLUONDATALENGTH)
+      common /EOSdata/PEOSdata, SEOSdata, EEOSdata, EOScs2data,
+     &     EOScstilde2data, PEOSgluondata, SEOSgluondata, EEOSgluondata,
+     &     EOScs2gluondata, EOScstilde2gluondata
 
-      double precision :: EOSe0         ! min (first) energy density
-      double precision :: EOSde         ! energy density step
-      double precision :: EOSEend       ! max (last) energy density
-      Integer :: EOSne = EOSDATALENGTH ! number of table rows
-      double precision :: EOSgluone0         ! min (first) energy density
-      double precision :: EOSgluonde         ! energy density step
-      double precision :: EOSgluonEend       ! max (last) energy density
-      Integer :: EOSgluonne = EOSGLUONDATALENGTH  ! number of table rows
-      common /EOSdatastructure/ EOSe0, EOSde, EOSEend,
-     & EOSgluone0, EOSgluonde, EOSgluonEend, EOSne, EOSgluonne
+      double precision :: EOST0, EOSe0         ! min (first) temperature
+      double precision :: EOSdT, EOSde         ! temperature step
+      double precision :: EOSTend, EOSEend       ! max (last) temperature
+      Integer :: EOSnT = EOSDATALENGTH ! number of table rows
+      double precision :: EOSgluonT0, EOSgluone0        ! min (first) temperature
+      double precision :: EOSgluondT, EOSgluonde         ! temperature step
+      double precision :: EOSgluonTend, EOSgluonEend       ! max (last) temperature
+      Integer :: EOSgluonnT = EOSGLUONDATALENGTH  ! number of table rows
+      common /EOSdatastructure/ EOST0, EOSdT, EOSTend,
+     & EOSgluonT0, EOSgluondT, EOSgluonTend, EOSnT, EOSgluonnT
       
       double precision :: escale, epow, sscale, spow
       double precision :: escalegluon, epowgluon, sscalegluon, spowgluon
@@ -343,11 +367,11 @@ C====EOS from table===================================================
 
       e = abs(e)
 
-      if (e.lt.EOSgluone0) then
-        SEOSL7gluon = SEOSgluondata(1)*e/EOSgluone0
-      else if (e.lt.EOSgluonEend) then
-         call interpCubic(SEOSgluondata, EOSgluonne, EOSgluone0,
-     &       EOSgluonde, e, SEOSL7gluon)
+      if (e.lt.EEOSgluondata(1)) then
+        SEOSL7gluon = SEOSgluondata(1)*e/EEOSgluondata(1)
+      else if (e.lt.EEOSgluondata(EOSgluonnT)) then
+         call interpCubic(SEOSgluondata, EOSgluonnT, EOSgluonT0,
+     &       EOSgluondT, TEOSL7gluon(e), SEOSL7gluon)
       else
         ! extrapolate, see notes above
          SEOSL7gluon = sscalegluon
@@ -362,33 +386,38 @@ C====EOS from table===================================================
 
       double precision :: e, Tprop
       double precision,optional :: Tpin
-      double precision :: PEOSL7
+      double precision :: PEOSL7, TEOSL7
      
       double precision :: PEOSdata(EOSDATALENGTH),
      &                    SEOSdata(EOSDATALENGTH),
-     &                    TEOSdata(EOSDATALENGTH)
-      integer,parameter :: EOSGLUONDATALENGTH = EOSDATALENGTH
+     &                    EEOSdata(EOSDATALENGTH),
+     &                    EOScs2data(EOSDATALENGTH),
+     &                    EOScstilde2data(EOSDATALENGTH)
       double precision :: PEOSgluondata(EOSGLUONDATALENGTH),
      &                    SEOSgluondata(EOSGLUONDATALENGTH),
-     &                    TEOSgluondata(EOSGLUONDATALENGTH)
-      common /EOSdata/PEOSdata, SEOSdata, TEOSdata, PEOSgluondata,
-     & SEOSgluondata, TEOSgluondata
+     &                    EEOSgluondata(EOSGLUONDATALENGTH),
+     &                    EOScs2gluondata(EOSGLUONDATALENGTH),
+     &                    EOScstilde2gluondata(EOSGLUONDATALENGTH)
+      common /EOSdata/PEOSdata, SEOSdata, EEOSdata, EOScs2data,
+     &     EOScstilde2data, PEOSgluondata, SEOSgluondata, EEOSgluondata,
+     &     EOScs2gluondata, EOScstilde2gluondata
 
-      double precision :: EOSe0         ! min (first) energy density
-      double precision :: EOSde         ! energy density step
-      double precision :: EOSEend       ! max (last) energy density
-      Integer :: EOSne = EOSDATALENGTH ! number of table rows
-      double precision :: EOSgluone0         ! min (first) energy density
-      double precision :: EOSgluonde         ! energy density step
-      double precision :: EOSgluonEend       ! max (last) energy density
-      Integer :: EOSgluonne = EOSGLUONDATALENGTH  ! number of table rows
-      common /EOSdatastructure/ EOSe0, EOSde, EOSEend,
-     & EOSgluone0, EOSgluonde, EOSgluonEend, EOSne, EOSgluonne
+      double precision :: EOST0, EOSe0         ! min (first) temperature
+      double precision :: EOSdT, EOSde         ! temperature step
+      double precision :: EOSTend, EOSEend       ! max (last) temperature
+      Integer :: EOSnT = EOSDATALENGTH ! number of table rows
+      double precision :: EOSgluonT0, EOSgluone0        ! min (first) temperature
+      double precision :: EOSgluondT, EOSgluonde         ! temperature step
+      double precision :: EOSgluonTend, EOSgluonEend       ! max (last) temperature
+      Integer :: EOSgluonnT = EOSGLUONDATALENGTH  ! number of table rows
+      common /EOSdatastructure/ EOST0, EOSdT, EOSTend,
+     & EOSgluonT0, EOSgluondT, EOSgluonTend, EOSnT, EOSgluonnT
       
       double precision :: escale, epow, sscale, spow
       double precision :: escalegluon, epowgluon, sscalegluon, spowgluon
       common /EOScoeffs/ escale, epow, sscale, spow, escalegluon,
      & epowgluon, sscalegluon, spowgluon
+
 
       double precision Time, Teq
       common /Time/ Time, Teq
@@ -408,38 +437,111 @@ C====EOS from table===================================================
 
       e = abs(e)
 
-      SEOSL7 = fugacity * SEOSL7qcd(e) + (1 - fugacity) * SEOSL7gluon(e)
+      SEOSL7 = (4d0/3d0)*e/TEOSL7(e)!fugacity * SEOSL7qcd(e) + (1 - fugacity) * SEOSL7gluon(e)
       
       return
       end
 
+      Double Precision Function energyqcd(T) ! Returns energy given temperature -Andrew
+      implicit None
+      double precision :: T
+
+      double precision :: PEOSdata(EOSDATALENGTH),
+     &                    SEOSdata(EOSDATALENGTH),
+     &                    EEOSdata(EOSDATALENGTH),
+     &                    EOScs2data(EOSDATALENGTH),
+     &                    EOScstilde2data(EOSDATALENGTH)
+      double precision :: PEOSgluondata(EOSGLUONDATALENGTH),
+     &                    SEOSgluondata(EOSGLUONDATALENGTH),
+     &                    EEOSgluondata(EOSGLUONDATALENGTH),
+     &                    EOScs2gluondata(EOSGLUONDATALENGTH),
+     &                    EOScstilde2gluondata(EOSGLUONDATALENGTH)
+      common /EOSdata/PEOSdata, SEOSdata, EEOSdata, EOScs2data,
+     &     EOScstilde2data, PEOSgluondata, SEOSgluondata, EEOSgluondata,
+     &     EOScs2gluondata, EOScstilde2gluondata
+
+      double precision :: EOST0, EOSe0         ! min (first) temperature
+      double precision :: EOSdT, EOSde         ! temperature step
+      double precision :: EOSTend, EOSEend       ! max (last) temperature
+      Integer :: EOSnT                          ! number of table rows
+      double precision :: EOSgluonT0, EOSgluone0        ! min (first) temperature
+      double precision :: EOSgluondT, EOSgluonde         ! temperature step
+      double precision :: EOSgluonTend, EOSgluonEend       ! max (last) temperature
+      Integer :: EOSgluonnT                         ! number of table rows
+      common /EOSdatastructure/ EOST0, EOSdT, EOSTend,
+     &     EOSgluonT0, EOSgluondT, EOSgluonTend, EOSnT, EOSgluonnT
+     
+      call interpCubic(EEOSdata, EOSnT, EOST0, EOSdT, T, energyqcd)
+      
+      return
+      end
+      
+      Double Precision Function energygluon(T) ! Returns energy given temperature -Andrew
+      implicit None
+      double precision :: T
+
+      double precision :: PEOSdata(EOSDATALENGTH),
+     &                    SEOSdata(EOSDATALENGTH),
+     &                    EEOSdata(EOSDATALENGTH),
+     &                    EOScs2data(EOSDATALENGTH),
+     &                    EOScstilde2data(EOSDATALENGTH)
+      double precision :: PEOSgluondata(EOSGLUONDATALENGTH),
+     &                    SEOSgluondata(EOSGLUONDATALENGTH),
+     &                    EEOSgluondata(EOSGLUONDATALENGTH),
+     &                    EOScs2gluondata(EOSGLUONDATALENGTH),
+     &                    EOScstilde2gluondata(EOSGLUONDATALENGTH)
+      common /EOSdata/PEOSdata, SEOSdata, EEOSdata, EOScs2data,
+     &     EOScstilde2data, PEOSgluondata, SEOSgluondata, EEOSgluondata,
+     &     EOScs2gluondata, EOScstilde2gluondata
+
+      double precision :: EOST0, EOSe0         ! min (first) temperature
+      double precision :: EOSdT, EOSde         ! temperature step
+      double precision :: EOSTend, EOSEend       ! max (last) temperature
+      Integer :: EOSnT = EOSDATALENGTH ! number of table rows
+      double precision :: EOSgluonT0, EOSgluone0        ! min (first) temperature
+      double precision :: EOSgluondT, EOSgluonde         ! temperature step
+      double precision :: EOSgluonTend, EOSgluonEend       ! max (last) temperature
+      Integer :: EOSgluonnT = EOSGLUONDATALENGTH  ! number of table rows
+      common /EOSdatastructure/ EOST0, EOSdT, EOSTend,
+     & EOSgluonT0, EOSgluondT, EOSgluonTend, EOSnT, EOSgluonnT
+
+      call interpCubic(EEOSgluondata, EOSgluonnT, EOSgluonT0,
+     & EOSgluondT, T, energygluon)
+
+      return
+      end
+      
       Double Precision Function TEOSL7qcd(e)  ! for lattice T(e)
       Implicit none
 
       double precision :: e
 
-      double precision :: PEOSL7qcd, SEOSL7qcd
+      double precision :: PEOSL7qcd, SEOSL7qcd, energyqcd
 
       double precision :: PEOSdata(EOSDATALENGTH),
      &                    SEOSdata(EOSDATALENGTH),
-     &     TEOSdata(EOSDATALENGTH)
-      integer,parameter :: EOSGLUONDATALENGTH = EOSDATALENGTH      
+     &                    EEOSdata(EOSDATALENGTH),
+     &                    EOScs2data(EOSDATALENGTH),
+     &                    EOScstilde2data(EOSDATALENGTH)
       double precision :: PEOSgluondata(EOSGLUONDATALENGTH),
      &                    SEOSgluondata(EOSGLUONDATALENGTH),
-     &                    TEOSgluondata(EOSGLUONDATALENGTH)
-      common /EOSdata/PEOSdata, SEOSdata, TEOSdata, PEOSgluondata,
-     & SEOSgluondata, TEOSgluondata
+     &                    EEOSgluondata(EOSGLUONDATALENGTH),
+     &                    EOScs2gluondata(EOSGLUONDATALENGTH),
+     &                    EOScstilde2gluondata(EOSGLUONDATALENGTH)
+      common /EOSdata/PEOSdata, SEOSdata, EEOSdata, EOScs2data,
+     &     EOScstilde2data, PEOSgluondata, SEOSgluondata, EEOSgluondata,
+     &     EOScs2gluondata, EOScstilde2gluondata
 
-      double precision :: EOSe0         ! min (first) energy density
-      double precision :: EOSde         ! energy density step
-      double precision :: EOSEend       ! max (last) energy density
-      Integer :: EOSne = EOSDATALENGTH ! number of table rows
-      double precision :: EOSgluone0         ! min (first) energy density
-      double precision :: EOSgluonde         ! energy density step
-      double precision :: EOSgluonEend       ! max (last) energy density
-      Integer :: EOSgluonne = EOSGLUONDATALENGTH  ! number of table rows
-      common /EOSdatastructure/ EOSe0, EOSde, EOSEend,
-     & EOSgluone0, EOSgluonde, EOSgluonEend, EOSne, EOSgluonne
+      double precision :: EOST0, EOSe0         ! min (first) temperature
+      double precision :: EOSdT, EOSde         ! temperature step
+      double precision :: EOSTend, EOSEend       ! max (last) temperature
+      Integer :: EOSnT = EOSDATALENGTH ! number of table rows
+      double precision :: EOSgluonT0, EOSgluone0        ! min (first) temperature
+      double precision :: EOSgluondT, EOSgluonde         ! temperature step
+      double precision :: EOSgluonTend, EOSgluonEend       ! max (last) temperature
+      Integer :: EOSgluonnT = EOSGLUONDATALENGTH  ! number of table rows
+      common /EOSdatastructure/ EOST0, EOSdT, EOSTend,
+     & EOSgluonT0, EOSgluondT, EOSgluonTend, EOSnT, EOSgluonnT
       
       double precision :: escale, epow, sscale, spow
       double precision :: escalegluon, epowgluon, sscalegluon, spowgluon
@@ -448,13 +550,16 @@ C====EOS from table===================================================
 
       double precision Time, Teq
       common /Time/ Time, Teq
-      
+
       e = abs(e)
 
-      if (e.lt.EOSe0) then
-        TEOSL7qcd = TEOSdata(1)*e/EOSe0
-      else if (e.lt.EOSEend) then
-        call interpCubic(TEOSdata, EOSne, EOSe0, EOSde, e, TEOSL7qcd)
+      if (e.lt.EEOSdata(1)) then
+        TEOSL7qcd = EOST0*e/EEOSdata(1)
+      else if (e.lt.EEOSdata(EOSnT)) then
+        TEOSL7qcd = energyqcd(EOST0)  ! Segmentation fault if function not called first?? - Andrew
+        call invertFunction_binary(energyqcd, EOST0,
+     &        EOSTend, 1D-16, 1D-6, e, TEOSL7qcd)
+        
       else
         ! use extrapolated pressure and entropy density
         ! T = (e + p)/s
@@ -469,28 +574,32 @@ C====EOS from table===================================================
 
       double precision :: e
 
-      double precision :: PEOSL7gluon, SEOSL7gluon
+      double precision :: PEOSL7gluon, SEOSL7gluon, energygluon
 
       double precision :: PEOSdata(EOSDATALENGTH),
      &                    SEOSdata(EOSDATALENGTH),
-     &     TEOSdata(EOSDATALENGTH)
-      integer,parameter :: EOSGLUONDATALENGTH = EOSDATALENGTH      
+     &                    EEOSdata(EOSDATALENGTH),
+     &                    EOScs2data(EOSDATALENGTH),
+     &                    EOScstilde2data(EOSDATALENGTH)
       double precision :: PEOSgluondata(EOSGLUONDATALENGTH),
      &                    SEOSgluondata(EOSGLUONDATALENGTH),
-     &                    TEOSgluondata(EOSGLUONDATALENGTH)
-      common /EOSdata/PEOSdata, SEOSdata, TEOSdata, PEOSgluondata,
-     & SEOSgluondata, TEOSgluondata
+     &                    EEOSgluondata(EOSGLUONDATALENGTH),
+     &                    EOScs2gluondata(EOSGLUONDATALENGTH),
+     &                    EOScstilde2gluondata(EOSGLUONDATALENGTH)
+      common /EOSdata/PEOSdata, SEOSdata, EEOSdata, EOScs2data,
+     &     EOScstilde2data, PEOSgluondata, SEOSgluondata, EEOSgluondata,
+     &     EOScs2gluondata, EOScstilde2gluondata
 
-      double precision :: EOSe0         ! min (first) energy density
-      double precision :: EOSde         ! energy density step
-      double precision :: EOSEend       ! max (last) energy density
-      Integer :: EOSne = EOSDATALENGTH ! number of table rows
-      double precision :: EOSgluone0         ! min (first) energy density
-      double precision :: EOSgluonde         ! energy density step
-      double precision :: EOSgluonEend       ! max (last) energy density
-      Integer :: EOSgluonne = EOSGLUONDATALENGTH  ! number of table rows
-      common /EOSdatastructure/ EOSe0, EOSde, EOSEend,
-     & EOSgluone0, EOSgluonde, EOSgluonEend, EOSne, EOSgluonne
+      double precision :: EOST0, EOSe0         ! min (first) temperature
+      double precision :: EOSdT, EOSde         ! temperature step
+      double precision :: EOSTend, EOSEend       ! max (last) temperature
+      Integer :: EOSnT = EOSDATALENGTH ! number of table rows
+      double precision :: EOSgluonT0, EOSgluone0        ! min (first) temperature
+      double precision :: EOSgluondT, EOSgluonde         ! temperature step
+      double precision :: EOSgluonTend, EOSgluonEend       ! max (last) temperature
+      Integer :: EOSgluonnT = EOSGLUONDATALENGTH  ! number of table rows
+      common /EOSdatastructure/ EOST0, EOSdT, EOSTend,
+     & EOSgluonT0, EOSgluondT, EOSgluonTend, EOSnT, EOSgluonnT
       
       double precision :: escale, epow, sscale, spow
       double precision :: escalegluon, epowgluon, sscalegluon, spowgluon
@@ -502,11 +611,12 @@ C====EOS from table===================================================
       
       e = abs(e)
 
-      if (e.lt.EOSgluone0) then
-        TEOSL7gluon = TEOSgluondata(1)*e/EOSgluone0
-      else if (e.lt.EOSgluonEend) then
-         call interpCubic(TEOSgluondata, EOSgluonne, EOSgluone0,
-     &       EOSgluonde, e, TEOSL7gluon)
+      if (e.lt.EEOSgluondata(1)) then
+        TEOSL7gluon = EOSgluonT0*e/EEOSgluondata(1)
+      else if (e.lt.EEOSgluondata(EOSgluonnT)) then
+        TEOSL7gluon = energygluon(EOSgluonT0) ! Segmentation fault if function not called first?? - Andrew
+        call invertFunction_binary(energygluon, EOSgluonT0,
+     &        EOSgluonTend, 1D-16, 1D-6, e, TEOSL7gluon)
       else
         ! use extrapolated pressure and entropy density
         ! T = (e + p)/s
@@ -525,24 +635,28 @@ C====EOS from table===================================================
 
       double precision :: PEOSdata(EOSDATALENGTH),
      &                    SEOSdata(EOSDATALENGTH),
-     &     TEOSdata(EOSDATALENGTH)
-      integer,parameter :: EOSGLUONDATALENGTH = EOSDATALENGTH      
+     &                    EEOSdata(EOSDATALENGTH),
+     &                    EOScs2data(EOSDATALENGTH),
+     &                    EOScstilde2data(EOSDATALENGTH)
       double precision :: PEOSgluondata(EOSGLUONDATALENGTH),
      &                    SEOSgluondata(EOSGLUONDATALENGTH),
-     &                    TEOSgluondata(EOSGLUONDATALENGTH)
-      common /EOSdata/PEOSdata, SEOSdata, TEOSdata, PEOSgluondata,
-     & SEOSgluondata, TEOSgluondata
+     &                    EEOSgluondata(EOSGLUONDATALENGTH),
+     &                    EOScs2gluondata(EOSGLUONDATALENGTH),
+     &                    EOScstilde2gluondata(EOSGLUONDATALENGTH)
+      common /EOSdata/PEOSdata, SEOSdata, EEOSdata, EOScs2data,
+     &     EOScstilde2data, PEOSgluondata, SEOSgluondata, EEOSgluondata,
+     &     EOScs2gluondata, EOScstilde2gluondata
 
-      double precision :: EOSe0         ! min (first) energy density
-      double precision :: EOSde         ! energy density step
-      double precision :: EOSEend       ! max (last) energy density
-      Integer :: EOSne = EOSDATALENGTH ! number of table rows
-      double precision :: EOSgluone0         ! min (first) energy density
-      double precision :: EOSgluonde         ! energy density step
-      double precision :: EOSgluonEend       ! max (last) energy density
-      Integer :: EOSgluonne = EOSGLUONDATALENGTH  ! number of table rows
-      common /EOSdatastructure/ EOSe0, EOSde, EOSEend,
-     & EOSgluone0, EOSgluonde, EOSgluonEend, EOSne, EOSgluonne
+      double precision :: EOST0, EOSe0         ! min (first) temperature
+      double precision :: EOSdT, EOSde         ! temperature step
+      double precision :: EOSTend, EOSEend       ! max (last) temperature
+      Integer :: EOSnT = EOSDATALENGTH ! number of table rows
+      double precision :: EOSgluonT0, EOSgluone0        ! min (first) temperature
+      double precision :: EOSgluondT, EOSgluonde         ! temperature step
+      double precision :: EOSgluonTend, EOSgluonEend       ! max (last) temperature
+      Integer :: EOSgluonnT = EOSGLUONDATALENGTH  ! number of table rows
+      common /EOSdatastructure/ EOST0, EOSdT, EOSTend,
+     & EOSgluonT0, EOSgluondT, EOSgluonTend, EOSnT, EOSgluonnT
       
       double precision :: escale, epow, sscale, spow
       double precision :: escalegluon, epowgluon, sscalegluon, spowgluon
@@ -561,7 +675,342 @@ C====EOS from table===================================================
       
       e = abs(e)
 
-      TEOSL7 = fugacity * TEOSL7qcd(e) + (1 - fugacity) * TEOSL7gluon(e)      
+      TEOSL7 = ((30d0/M_PI**2)*(M_HBARC**3)/(2*(3*3-1)+3.5*3*3)*e)
+     &  **(1d0/4d0)!fugacity * TEOSL7qcd(e) + (1 - fugacity) * TEOSL7gluon(e)      
       
       return
       end
+
+
+      Double Precision Function EOScs2qcd(e)  ! for lattice T(e)
+      Implicit none
+
+      double precision :: e, PEOSL7qcd, TEOSL7qcd
+
+      double precision :: PEOSdata(EOSDATALENGTH),
+     &                    SEOSdata(EOSDATALENGTH),
+     &                    EEOSdata(EOSDATALENGTH),
+     &                    EOScs2data(EOSDATALENGTH),
+     &                    EOScstilde2data(EOSDATALENGTH)
+      double precision :: PEOSgluondata(EOSGLUONDATALENGTH),
+     &                    SEOSgluondata(EOSGLUONDATALENGTH),
+     &                    EEOSgluondata(EOSGLUONDATALENGTH),
+     &                    EOScs2gluondata(EOSGLUONDATALENGTH),
+     &                    EOScstilde2gluondata(EOSGLUONDATALENGTH)
+      common /EOSdata/PEOSdata, SEOSdata, EEOSdata, EOScs2data,
+     &     EOScstilde2data, PEOSgluondata, SEOSgluondata, EEOSgluondata,
+     &     EOScs2gluondata, EOScstilde2gluondata
+
+      double precision :: EOST0, EOSe0         ! min (first) temperature
+      double precision :: EOSdT, EOSde         ! temperature step
+      double precision :: EOSTend, EOSEend       ! max (last) temperature
+      Integer :: EOSnT = EOSDATALENGTH ! number of table rows
+      double precision :: EOSgluonT0, EOSgluone0        ! min (first) temperature
+      double precision :: EOSgluondT, EOSgluonde         ! temperature step
+      double precision :: EOSgluonTend, EOSgluonEend       ! max (last) temperature
+      Integer :: EOSgluonnT = EOSGLUONDATALENGTH  ! number of table rows
+      common /EOSdatastructure/ EOST0, EOSdT, EOSTend,
+     & EOSgluonT0, EOSgluondT, EOSgluonTend, EOSnT, EOSgluonnT
+      
+      double precision :: escale, epow, sscale, spow
+      double precision :: escalegluon, epowgluon, sscalegluon, spowgluon
+      common /EOScoeffs/ escale, epow, sscale, spow, escalegluon,
+     & epowgluon, sscalegluon, spowgluon
+
+      double precision Time, Teq
+      common /Time/ Time, Teq
+
+      e = abs(e)
+
+      if (e.lt.EEOSdata(1)) then
+        EOScs2qcd = (PEOSdata(2)-PEOSdata(1))/(EEOSdata(2)-EEOSdata(1))
+      else if (e.lt.EEOSdata(EOSnT)) then
+        call interpCubic(EOScs2data, EOSnT, EOST0, EOSdT, TEOSL7qcd(e),
+     &    EOScs2qcd)
+        
+      else
+        ! use extrapolated pressure and entropy density
+        ! T = (e + p)/s
+        EOScs2qcd = (PEOSL7qcd(e)-PEOSL7qcd(e*0.99))/(e-e*0.99)
+      endif     
+      
+      return
+      end
+
+
+      Double Precision Function EOScs2gluon(e)  ! for lattice T(e)
+      Implicit none
+
+      double precision :: e, PEOSL7gluon, TEOSL7gluon
+
+      double precision :: PEOSdata(EOSDATALENGTH),
+     &                    SEOSdata(EOSDATALENGTH),
+     &                    EEOSdata(EOSDATALENGTH),
+     &                    EOScs2data(EOSDATALENGTH),
+     &                    EOScstilde2data(EOSDATALENGTH)
+      double precision :: PEOSgluondata(EOSGLUONDATALENGTH),
+     &                    SEOSgluondata(EOSGLUONDATALENGTH),
+     &                    EEOSgluondata(EOSGLUONDATALENGTH),
+     &                    EOScs2gluondata(EOSGLUONDATALENGTH),
+     &                    EOScstilde2gluondata(EOSGLUONDATALENGTH)
+      common /EOSdata/PEOSdata, SEOSdata, EEOSdata, EOScs2data,
+     &     EOScstilde2data, PEOSgluondata, SEOSgluondata, EEOSgluondata,
+     &     EOScs2gluondata, EOScstilde2gluondata
+
+      double precision :: EOST0, EOSe0         ! min (first) temperature
+      double precision :: EOSdT, EOSde         ! temperature step
+      double precision :: EOSTend, EOSEend       ! max (last) temperature
+      Integer :: EOSnT = EOSDATALENGTH ! number of table rows
+      double precision :: EOSgluonT0, EOSgluone0        ! min (first) temperature
+      double precision :: EOSgluondT, EOSgluonde         ! temperature step
+      double precision :: EOSgluonTend, EOSgluonEend       ! max (last) temperature
+      Integer :: EOSgluonnT = EOSGLUONDATALENGTH  ! number of table rows
+      common /EOSdatastructure/ EOST0, EOSdT, EOSTend,
+     & EOSgluonT0, EOSgluondT, EOSgluonTend, EOSnT, EOSgluonnT
+      
+      double precision :: escale, epow, sscale, spow
+      double precision :: escalegluon, epowgluon, sscalegluon, spowgluon
+      common /EOScoeffs/ escale, epow, sscale, spow, escalegluon,
+     & epowgluon, sscalegluon, spowgluon
+
+      double precision Time, Teq
+      common /Time/ Time, Teq
+
+      e = abs(e)
+
+      if (e.lt.EEOSgluondata(1)) then
+         EOScs2gluon = (PEOSgluondata(2)-PEOSgluondata(1))/
+     &    (EEOSgluondata(2)-EEOSgluondata(1))
+      else if (e.lt.EEOSgluondata(EOSnT)) then
+         call interpCubic(EOScs2gluondata, EOSgluonnT, EOSgluonT0,
+     &    EOSgluondT, TEOSL7gluon(e), EOScs2gluon)
+        
+      else
+        ! use extrapolated pressure and entropy density
+        ! T = (e + p)/s
+        EOScs2gluon = (PEOSL7gluon(e)-PEOSL7gluon(e*0.99))/(e-e*0.99)
+      endif     
+      
+      return
+      end
+      
+
+      Double Precision Function EOScs2(e, Tprop)  ! compute cs2 from lattice data
+      Implicit none
+
+      double precision :: e, Tprop
+
+      double precision :: PEOSdata(EOSDATALENGTH),
+     &                    SEOSdata(EOSDATALENGTH),
+     &                    EEOSdata(EOSDATALENGTH),
+     &                    EOScs2data(EOSDATALENGTH),
+     &                    EOScstilde2data(EOSDATALENGTH)
+      double precision :: PEOSgluondata(EOSGLUONDATALENGTH),
+     &                    SEOSgluondata(EOSGLUONDATALENGTH),
+     &                    EEOSgluondata(EOSGLUONDATALENGTH),
+     &                    EOScs2gluondata(EOSGLUONDATALENGTH),
+     &                    EOScstilde2gluondata(EOSGLUONDATALENGTH)
+      common /EOSdata/PEOSdata, SEOSdata, EEOSdata, EOScs2data,
+     &     EOScstilde2data, PEOSgluondata, SEOSgluondata, EEOSgluondata,
+     &     EOScs2gluondata, EOScstilde2gluondata
+
+      double precision :: EOST0, EOSe0         ! min (first) temperature
+      double precision :: EOSdT, EOSde         ! temperature step
+      double precision :: EOSTend, EOSEend       ! max (last) temperature
+      Integer :: EOSnT = EOSDATALENGTH ! number of table rows
+      double precision :: EOSgluonT0, EOSgluone0        ! min (first) temperature
+      double precision :: EOSgluondT, EOSgluonde         ! temperature step
+      double precision :: EOSgluonTend, EOSgluonEend       ! max (last) temperature
+      Integer :: EOSgluonnT = EOSGLUONDATALENGTH  ! number of table rows
+      common /EOSdatastructure/ EOST0, EOSdT, EOSTend,
+     & EOSgluonT0, EOSgluondT, EOSgluonTend, EOSnT, EOSgluonnT
+      
+      double precision :: escale, epow, sscale, spow
+      double precision :: escalegluon, epowgluon, sscalegluon, spowgluon
+      common /EOScoeffs/ escale, epow, sscale, spow, escalegluon,
+     & epowgluon, sscalegluon, spowgluon
+
+      double precision Time, Teq
+      common /Time/ Time, Teq
+
+      Double Precision T0 ! initial time tau_0
+      Common /T0/ T0
+
+      double precision fugacity, fug, EOScs2qcd, EOScs2gluon
+      
+      fugacity = fug(T0, Tprop, Teq)
+      
+      e = abs(e)
+
+      EOScs2 = 1d0/3d0!fugacity * EOScs2qcd(e) + (1 - fugacity) * EOScs2gluon(e)      
+      
+      return
+      end
+
+
+      Double Precision Function EOScstilde2qcd(e)  ! for lattice T(e)
+      Implicit none
+
+      double precision :: e, PEOSL7qcd, TEOSL7qcd
+
+      double precision :: PEOSdata(EOSDATALENGTH),
+     &                    SEOSdata(EOSDATALENGTH),
+     &                    EEOSdata(EOSDATALENGTH),
+     &                    EOScs2data(EOSDATALENGTH),
+     &                    EOScstilde2data(EOSDATALENGTH)
+      double precision :: PEOSgluondata(EOSGLUONDATALENGTH),
+     &                    SEOSgluondata(EOSGLUONDATALENGTH),
+     &                    EEOSgluondata(EOSGLUONDATALENGTH),
+     &                    EOScs2gluondata(EOSGLUONDATALENGTH),
+     &                    EOScstilde2gluondata(EOSGLUONDATALENGTH)
+      common /EOSdata/PEOSdata, SEOSdata, EEOSdata, EOScs2data,
+     &     EOScstilde2data, PEOSgluondata, SEOSgluondata, EEOSgluondata,
+     &     EOScs2gluondata, EOScstilde2gluondata
+
+      double precision :: EOST0, EOSe0         ! min (first) temperature
+      double precision :: EOSdT, EOSde         ! temperature step
+      double precision :: EOSTend, EOSEend       ! max (last) temperature
+      Integer :: EOSnT = EOSDATALENGTH ! number of table rows
+      double precision :: EOSgluonT0, EOSgluone0        ! min (first) temperature
+      double precision :: EOSgluondT, EOSgluonde         ! temperature step
+      double precision :: EOSgluonTend, EOSgluonEend       ! max (last) temperature
+      Integer :: EOSgluonnT = EOSGLUONDATALENGTH  ! number of table rows
+      common /EOSdatastructure/ EOST0, EOSdT, EOSTend,
+     & EOSgluonT0, EOSgluondT, EOSgluonTend, EOSnT, EOSgluonnT
+      
+      double precision :: escale, epow, sscale, spow
+      double precision :: escalegluon, epowgluon, sscalegluon, spowgluon
+      common /EOScoeffs/ escale, epow, sscale, spow, escalegluon,
+     & epowgluon, sscalegluon, spowgluon
+
+      double precision Time, Teq
+      common /Time/ Time, Teq
+
+      e = abs(e)
+
+      if (e.lt.EEOSdata(1)) then
+        EOScstilde2qcd = PEOSdata(1)/EEOSdata(1)
+      else if (e.lt.EEOSdata(EOSnT)) then
+        call interpCubic(EOScstilde2data, EOSnT, EOST0, EOSdT,
+     &    TEOSL7qcd(e), EOScstilde2qcd)
+        
+      else
+        ! use extrapolated pressure and entropy density
+        ! T = (e + p)/s
+        EOScstilde2qcd = PEOSL7qcd(e)/e
+      endif     
+      
+      return
+      end
+
+
+      Double Precision Function EOScstilde2gluon(e)  ! for lattice T(e)
+      Implicit none
+
+      double precision :: e, PEOSL7gluon, TEOSL7gluon
+
+      double precision :: PEOSdata(EOSDATALENGTH),
+     &                    SEOSdata(EOSDATALENGTH),
+     &                    EEOSdata(EOSDATALENGTH),
+     &                    EOScs2data(EOSDATALENGTH),
+     &                    EOScstilde2data(EOSDATALENGTH)
+      double precision :: PEOSgluondata(EOSGLUONDATALENGTH),
+     &                    SEOSgluondata(EOSGLUONDATALENGTH),
+     &                    EEOSgluondata(EOSGLUONDATALENGTH),
+     &                    EOScs2gluondata(EOSGLUONDATALENGTH),
+     &                    EOScstilde2gluondata(EOSGLUONDATALENGTH)
+      common /EOSdata/PEOSdata, SEOSdata, EEOSdata, EOScs2data,
+     &     EOScstilde2data, PEOSgluondata, SEOSgluondata, EEOSgluondata,
+     &     EOScs2gluondata, EOScstilde2gluondata
+
+      double precision :: EOST0, EOSe0         ! min (first) temperature
+      double precision :: EOSdT, EOSde         ! temperature step
+      double precision :: EOSTend, EOSEend       ! max (last) temperature
+      Integer :: EOSnT = EOSDATALENGTH ! number of table rows
+      double precision :: EOSgluonT0, EOSgluone0        ! min (first) temperature
+      double precision :: EOSgluondT, EOSgluonde         ! temperature step
+      double precision :: EOSgluonTend, EOSgluonEend       ! max (last) temperature
+      Integer :: EOSgluonnT = EOSGLUONDATALENGTH  ! number of table rows
+      common /EOSdatastructure/ EOST0, EOSdT, EOSTend,
+     & EOSgluonT0, EOSgluondT, EOSgluonTend, EOSnT, EOSgluonnT
+      
+      double precision :: escale, epow, sscale, spow
+      double precision :: escalegluon, epowgluon, sscalegluon, spowgluon
+      common /EOScoeffs/ escale, epow, sscale, spow, escalegluon,
+     & epowgluon, sscalegluon, spowgluon
+
+      double precision Time, Teq
+      common /Time/ Time, Teq
+
+      e = abs(e)
+
+      if (e.lt.EEOSgluondata(1)) then
+         EOScstilde2gluon = PEOSgluondata(1)/EEOSgluondata(1)
+      else if (e.lt.EEOSgluondata(EOSnT)) then
+         call interpCubic(EOScstilde2gluondata, EOSgluonnT, EOSgluonT0,
+     &    EOSgluondT, TEOSL7gluon(e), EOScstilde2gluon)
+        
+      else
+        ! use extrapolated pressure and entropy density
+        ! T = (e + p)/s
+        EOScstilde2gluon = PEOSL7gluon(e)/e
+      endif     
+      
+      return
+      end
+
+      
+
+      Double Precision Function EOScstilde2(e, Tprop)  ! compute cs2 from lattice data
+      Implicit none
+
+      double precision :: e, Tprop
+
+      double precision :: PEOSdata(EOSDATALENGTH),
+     &                    SEOSdata(EOSDATALENGTH),
+     &                    EEOSdata(EOSDATALENGTH),
+     &                    EOScs2data(EOSDATALENGTH),
+     &                    EOScstilde2data(EOSDATALENGTH)
+      double precision :: PEOSgluondata(EOSGLUONDATALENGTH),
+     &                    SEOSgluondata(EOSGLUONDATALENGTH),
+     &                    EEOSgluondata(EOSGLUONDATALENGTH),
+     &                    EOScs2gluondata(EOSGLUONDATALENGTH),
+     &                    EOScstilde2gluondata(EOSGLUONDATALENGTH)
+      common /EOSdata/PEOSdata, SEOSdata, EEOSdata, EOScs2data,
+     &     EOScstilde2data, PEOSgluondata, SEOSgluondata, EEOSgluondata,
+     &     EOScs2gluondata, EOScstilde2gluondata
+
+      double precision :: EOST0, EOSe0         ! min (first) temperature
+      double precision :: EOSdT, EOSde         ! temperature step
+      double precision :: EOSTend, EOSEend       ! max (last) temperature
+      Integer :: EOSnT = EOSDATALENGTH ! number of table rows
+      double precision :: EOSgluonT0, EOSgluone0        ! min (first) temperature
+      double precision :: EOSgluondT, EOSgluonde         ! temperature step
+      double precision :: EOSgluonTend, EOSgluonEend       ! max (last) temperature
+      Integer :: EOSgluonnT = EOSGLUONDATALENGTH  ! number of table rows
+      common /EOSdatastructure/ EOST0, EOSdT, EOSTend,
+     & EOSgluonT0, EOSgluondT, EOSgluonTend, EOSnT, EOSgluonnT
+      
+      double precision :: escale, epow, sscale, spow
+      double precision :: escalegluon, epowgluon, sscalegluon, spowgluon
+      common /EOScoeffs/ escale, epow, sscale, spow, escalegluon,
+     & epowgluon, sscalegluon, spowgluon
+
+      double precision Time, Teq
+      common /Time/ Time, Teq
+
+      Double Precision T0 ! initial time tau_0
+      Common /T0/ T0
+
+      double precision fugacity, fug, EOScstilde2qcd, EOScstilde2gluon
+      
+      fugacity = fug(T0, Tprop, Teq)
+      
+      e = abs(e)
+
+      EOScstilde2 = 1d0/3d0!fugacity * EOScstilde2qcd(e) +
+   !  & (1 - fugacity) * EOScstilde2gluon(e)      
+      
+      return
+      end
+      

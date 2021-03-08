@@ -373,9 +373,19 @@ def main():
          plot(T, e3p_T4, p_T4, e_T4, args, hrg_kwargs)
          return
      
+    Nc = 3
+    Nf = 3    
+    T = np.linspace(1e-10, 0.7, 10**5)
+    e = np.pi**2 * 1/30. * (2*(Nc*Nc-1) + 3.5*Nc*Nf) * T**4 / HBARC**3
+    p = e/3.
+    s = (e + p)/T
+    cs2 = CubicSpline(e, p)(e, nu=1)
+    cstilde2 = p/e
+
     if args.write_bin:
         with open(args.write_bin, 'wb') as f:
-            for x in [e[0], e[-1], p, s, T]:
+            # for x in [e[0], e[-1], p, s, T]:
+            for x in [T[0], T[-1], p, s, e, cs2, cstilde2]:
                 f.write(x.tobytes())
     else:
         # output table
