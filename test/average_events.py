@@ -6,7 +6,7 @@ import h5py
 """ Averages over 100,000 trento events and saves the profile as a numpy array to be read by run-hydro.py.
 For trento normalization factor of 13, 100000 Pb Pb events are first run and saved in events13.hdf. The profile is saved as profile13.npy. """
 
-profile = np.zeros([100,100])
+profile = np.zeros([500,500])
 b = 0
 npart = 0
 mult = 0
@@ -15,18 +15,18 @@ e3 = 0
 e4 = 0
 e5 = 0
 
-bvals = np.zeros(100000)
+bvals = np.zeros(10000)
 
-with h5py.File('eventsminbias.hdf','r') as f:
+with h5py.File('events.hdf','r') as f:
     i = 0
     for dset in f.values():
         bvals[i] = dset.attrs['b']
         i = i+1
         
 bvals = np.sort(bvals)
-bvalsallowed = bvals[:20000]
+bvalsallowed = bvals[:]
 
-with h5py.File('eventsminbias.hdf','r') as f:
+with h5py.File('events.hdf','r') as f:
     for dset in f.values():
         if dset.attrs['b'] in bvalsallowed:  
             profile += np.array(dset)
@@ -38,7 +38,7 @@ with h5py.File('eventsminbias.hdf','r') as f:
         # e4 += dset.attrs['e4']
         # e5 += dset.attrs['e5']
         
-profile = profile/20000
+profile = profile/10000
 # b = b/100000
 # npart = npart/100000
 # mult = mult/100000
@@ -47,4 +47,4 @@ profile = profile/20000
 # e4 = e4/100000
 # e5 = e5/100000
 
-np.save('profiles/profilex15n13p1central20.npy', profile)
+np.save('profiles/profilex15n13p1grid500.npy', profile)

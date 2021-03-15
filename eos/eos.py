@@ -154,13 +154,13 @@ def plot(T, e3p_T4, p_T4, e_T4, args, hrg_kwargs):
     Thrg = np.linspace(T[0], args.Tb + .02, 100)
     hrg = HRGEOS(Thrg, **hrg_kwargs)
     p_T4_hrg = hrg.p_T4()
-    e_T4_hrg = 3*hrg.p_T4()
+    e_T4_hrg = hrg.e_T4()
     e3p_T4_hrg = e_T4_hrg - 3*p_T4_hrg
 
     Tlat = np.linspace(args.Ta - .02, T[-1], 1000)
     e3p_T4_lat = e3p_T4_lattice(Tlat)
     p_T4_lat = p_T4_lattice(Tlat)
-    e_T4_lat = 3*p_T4_lat
+    e_T4_lat = e3p_T4_lat + 3*p_T4_lat
 
     with axes('Trace anomaly', '$(\epsilon - 3p)/T^4$') as ax:
         ax.plot(Thrg, e3p_T4_hrg, **ref_line)
@@ -317,7 +317,7 @@ def main():
 
     # join temperature ranges together
     T = np.concatenate([Tl, Tm, Th])
-    e3p_T4 = 0*np.concatenate([e3p_T4_l, e3p_T4_m, e3p_T4_h])
+    e3p_T4 = np.concatenate([e3p_T4_l, e3p_T4_m, e3p_T4_h])
 
     # pressure is integral of trace anomaly over temperature starting from some
     # reference temperature, Eq. (12) in HotQCD paper:
@@ -331,11 +331,8 @@ def main():
         return p_T4
 
 
-    Nc = 3
-    Nf = 3
-    T = np.linspace(0, 0.7, 10**6)
-    p_T4 = 1/3 * np.pi**2 * 1/30. * (2*(Nc*Nc-1) + 3.5*Nc*Nf) * np.ones(T.shape)
-    e_T4 = 3*p_T4
+    p_T4 = compute_p_T4(T)
+    e_T4 = e3p_T4 + 3*p_T4
 
     if args.plot:
         plot(T, e3p_T4, p_T4, e_T4, args, hrg_kwargs)
@@ -343,26 +340,16 @@ def main():
 
     # energy density at original temperature points
     e_orig = e_T4 * T**4 / HBARC**3
-    e = e_T4 * T**4 / HBARC**3
-    p = e/3.
-    
-    # compute thermodynamic quantities at evenly-spaced energy density points
-    # as required by osu-hydro
-    # e = np.linspace(e_orig[nextrapts], e_orig[-nextrapts - 1], args.nsteps)
-    # T = CubicSpline(e_orig, T)(e)
-    # p = 1/3 * np.pi**2 * 1/30. * (2*(Nc*Nc-1) + 3.5*Nc*Nf) * np.ones(T.shape) * T**4 / HBARC**3
-    
-    # e = np.linspace(1e-10, 500, 10**6)
-    # T = (30/np.pi**2 * 1/(2*(Nc*Nc-1) + 3.5*Nc*Nf) * HBARC**3 * e)**(0.25)
-    T = np.linspace(1e-10, 0.7, 10**5)
-    e = np.pi**2 * 1/30. * (2*(Nc*Nc-1) + 3.5*Nc*Nf) * T**4 / HBARC**3
-    p = e/3.
+    T_orig = T
+
+    # compute thermodynamic quantities at evenly-spaced temperature points
+    # as required by osu-hydro-pce
+    T = np.linspace(T[nextrapts], T[-nextrapts - 1], args.nsteps)
+    e = CubicSpline(T_orig,e_orig)(T)
+    p = compute_p_T4(T) * T**4 / HBARC**3
     s = (e + p)/T
     cs2 = CubicSpline(e, p)(e, nu=1)
     cstilde2 = p/e
-    import matplotlib.pyplot as plt
-    #plt.scatter(T,cstilde2,s=1)
-    plt.plot(cstilde2 - cstilde2[0])
 
     if args.write_bin:
         with open(args.write_bin, 'wb') as f:

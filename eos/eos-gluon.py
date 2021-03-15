@@ -175,7 +175,7 @@ class HRGEOS:
         return self._calc('cs2')
 
 
-def plot(T, e3p_T4, p_T4, e_T4, args, hrg_kwargs):
+def plot(T, e3p_T4, p_T4, e_T4, cs2, args, hrg_kwargs):
     import matplotlib.pyplot as plt
 
     plt.rcdefaults()
@@ -221,34 +221,34 @@ def plot(T, e3p_T4, p_T4, e_T4, args, hrg_kwargs):
     p_T4_lat = p_T4_lattice_QGP(Tlat)
     e_T4_lat = e3p_T4_lat + 3*p_T4_lat
 
-    with axes('Trace anomaly', '$(\epsilon - 3p)/T^4$') as ax:
+    #with axes('Trace anomaly', '$(\epsilon - 3p)/T^4$') as ax:
        # ax.plot(Thrg, e3p_T4_hrg, **ref_line)
        # ax.plot(Tlat, e3p_T4_lat, **ref_line)
-        ax.plot(T, e3p_T4)
-        ax.set_ylim(0, 5)
+    #    ax.plot(T, e3p_T4)
+    #    ax.set_ylim(0, 5)
 
-    # with axes('Speed of sound', '$c_s^2$') as ax:
+    with axes('Speed of sound', '$c_s^2$') as ax:
     #    # ax.plot(Thrg, hrg.cs2(), **ref_line)
 
-    #     p = p_T4_lat*Tlat**4
-    #     e = e_T4_lat*Tlat**4
-    #    # ax.plot(Tlat, CubicSpline(e, p)(e, nu=1), **ref_line)
+        p = p_T4_lat*Tlat**4
+        e = e_T4_lat*Tlat**4
+        # ax.plot(Tlat, CubicSpline(e, p)(e, nu=1), **ref_line)
 
-    #     p = p_T4*T**4
-    #     e = e_T4*T**4
-    #     ax.plot(
-    #         T, CubicSpline(e, p)(e, nu=1),
-    #         label='$\partial p/\partial\epsilon$'
-    #     )
-    #     p_spline = CubicSpline(T, p)
-    #     ax.plot(
-    #         T, p_spline(T, nu=1)/p_spline(T, nu=2)/T,
-    #         label='$1/T\,(\partial p/\partial T)/(\partial^2p/\partial T^2)$',
-    #         **comp_line
-    #     )
+        p = p_T4*T**4
+        e = e_T4*T**4
+        ax.plot(
+            T, cs2,
+            label='$\partial p/\partial\epsilon$'
+        )
+        # p_spline = PchipInterpolator(T, p)
+        # ax.plot(
+        #     T, p_spline(T, nu=1)/p_spline(T, nu=2)/T,
+        #     label='$1/T\,(\partial p/\partial T)/(\partial^2p/\partial T^2)$',
+        #     **comp_line
+        # )
 
-    #     ax.set_ylim(.1, 1/3)
-    #     ax.legend(loc='upper left')
+        ax.set_ylim(.0, 1/3)
+        ax.legend(loc='upper left')
 
     # with axes(
     #         'Other thermodynamic quantities',
@@ -308,7 +308,7 @@ def main():
         help='connection range maximum temperature'
     )
     parser.add_argument(
-        '--Tmax', type=float, default=.500,
+        '--Tmax', type=float, default=.600,
         help='maximum temperature'
     )
     parser.add_argument(
@@ -354,11 +354,12 @@ def main():
 
     # energy density at original temperature points
     e_orig = e_T4 * tlat**4 / HBARC**3
+    p_orig = p_T4 * tlat**4 / HBARC**3
 
     # compute thermodynamic quantities at evenly-spaced energy density points
     # as required by osu-hydro
-    e = np.linspace(e_orig[0], e_orig[-24], args.nsteps)
-    T = CubicSpline(e_orig, tlat)(e)
+    T = np.linspace(tlat[0], tlat[-24], args.nsteps)
+    e = PchipInterpolator(tlat, e_orig)(T)
     Tsort = T.argsort()
     T = T[Tsort]
     # e = e[Tsort]
@@ -366,21 +367,17 @@ def main():
     e3p_T4 = e3p_T4(T)
     e_T4 = e3p_T4 + 3*p_T4
     
-    p = compute_p_T4(T) * T**4 / HBARC**3
-    s = (e + p)/T
+    cs2 = CubicSpline(e_orig,p_orig)(e, nu=1)
+    cs2[cs2<1e-10] = 1e-10  # Keep cs2 above a minimum threshold, otherwise it goes negative
+    cstilde2 = PchipInterpolator(tlat,p_orig/e_orig)(T)
 
     if args.plot:
-         plot(T, e3p_T4, p_T4, e_T4, args, hrg_kwargs)
+         plot(T, e3p_T4, p_T4, e_T4, cs2, args, hrg_kwargs)
          return
      
-    Nc = 3
-    Nf = 3    
-    T = np.linspace(1e-10, 0.7, 10**5)
-    e = np.pi**2 * 1/30. * (2*(Nc*Nc-1) + 3.5*Nc*Nf) * T**4 / HBARC**3
-    p = e/3.
-    s = (e + p)/T
-    cs2 = CubicSpline(e, p)(e, nu=1)
-    cstilde2 = p/e
+    p = compute_p_T4(T) * T**4 / HBARC**3
+    s = (e + p)/T    
+
 
     if args.write_bin:
         with open(args.write_bin, 'wb') as f:
