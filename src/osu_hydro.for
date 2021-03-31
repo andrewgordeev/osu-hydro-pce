@@ -562,30 +562,30 @@ C-------------------------------------------------------------------------------
           end if
  5999  Continue
       
-c$$$! Updating proper time with advection, as per Vovchenko's vHLLE code - Andrew      
-c$$$       Do 6999 K = NZ0, NZ
-c$$$       Do 6999 J = NY0, NY
-c$$$       Do 6999 I = NX0, NX
-c$$$          if (Ed(I,J,K) .LE. 0) then
-c$$$             Tprop(I,J,K) = Tprop0(I,J,K)
-c$$$          else
-c$$$             xm = -v1mid * DT/DX
-c$$$             ym = -v2mid * DT/DY
-c$$$             wx(0) = max(0D0,1 - abs(xm))
-c$$$             wx(1) = min(1D0,abs(xm))
-c$$$             wy(0) = max(0D0,1 - abs(ym))
-c$$$             wy(1) = min(1D0,abs(ym))
-c$$$             Tprop(I,J,K) = 0
-c$$$          
-c$$$             Do 7999 IX = 0,1
-c$$$             Do 7999 IY = 0,1
-c$$$                Tprop(I,J,K) = Tprop(I,J,K) + wx(IX) * wy(IY)
-c$$$     &               * Tprop0(I + IX*sgn(xm), J + IY*sgn(ym), K)
-c$$$
-c$$$ 7999        Continue
-c$$$          end if
-c$$$          
-c$$$ 6999  Continue
+! Updating proper time with advection, as per Vovchenko's vHLLE code - Andrew      
+       Do 6999 K = NZ0, NZ
+       Do 6999 J = NY0, NY
+       Do 6999 I = NX0, NX
+          if (Ed(I,J,K) .LE. 0) then
+             Tprop(I,J,K) = Tprop0(I,J,K)
+          else
+             xm = -v1mid * DT/DX
+             ym = -v2mid * DT/DY
+             wx(0) = max(0D0,1 - abs(xm))
+             wx(1) = min(1D0,abs(xm))
+             wy(0) = max(0D0,1 - abs(ym))
+             wy(1) = min(1D0,abs(ym))
+             Tprop(I,J,K) = 0
+          
+             Do 7999 IX = 0,1
+             Do 7999 IY = 0,1
+                Tprop(I,J,K) = Tprop(I,J,K) + wx(IX) * wy(IY)
+     &               * Tprop0(I + IX*sgn(xm), J + IY*sgn(ym), K)
+
+ 7999        Continue
+          end if
+          
+ 6999  Continue
       
 C~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 C~~~~     Freezeout Procedure (rewritten from Petor's code azhydro0p2)  A   ~~~~
@@ -839,7 +839,8 @@ C###############################################################################
      &          NX0,NY0,NX,NY,DTFreeze,DXFreeze,DYFreeze,entropy)
            
 
-           write(99) Tmid, Xmid, Ymid, TEOSL7(epsd, TpropInter)
+           write(99) Tmid, Xmid, Ymid, v1mid, v2mid,
+     &      TEOSL7(epsd, TpropInter), TpropInter
     ! &       Tmid, Xmid, Ymid,
     ! &       dSigma(:, iSurf),
     ! &       v1mid, v2mid,
@@ -1703,8 +1704,8 @@ C-------------------------------------------
        common/Edec1/Edec1
 
       ! ----- Use in root search -----
-      Double Precision :: RSDM0, RSDM, RSPPI !, RSee
-      Common /findEdHookData/ RSDM0, RSDM, RSPPI ! M0, M, Pi (see 0510014)
+      Double Precision :: RSDM0, RSDM, RSPPI, TpropHook !, RSee
+      Common /findEdHookData/ RSDM0, RSDM, RSPPI, TpropHook ! M0, M, Pi (see 0510014)
 
       Double precision :: deltaBPiBPi, lambdaBPiSpi ! bulk transport coefficients
       Double precision :: deltaSpiSpi, lambdaSpiBPi, phi7, taupipi ! shear transport coefficients
@@ -1795,7 +1796,7 @@ C---------------------------------------------------------------
         RSDM0 = DM0
         RSDM = DM
         RSPPI = PPI(I,J,K)
-
+        TpropHook = Tprop(I,J,K)
         !eeH = findEdHook(1D0)
         !Call invertFunctionD(findEdHook,0D0,5D3,1D-3,ED(I,J,K),0D0,eeH)
         VP_local = findvHook(0.0D0)
@@ -2718,8 +2719,8 @@ C----------------------------------------------------------------
 
       Double Precision ee ! energy density
 
-      Double Precision :: RSDM0, RSDM, RSPPI
-      Common /findEdHookData/ RSDM0, RSDM, RSPPI ! M0, M, Pi (see 0510014)
+      Double Precision :: RSDM0, RSDM, RSPPI, TpropHook
+      Common /findEdHookData/ RSDM0, RSDM, RSPPI, TpropHook ! M0, M, Pi (see 0510014)
 
       Double Precision cs2 ! energy density from previous iteration, p/e, pressure
       ! Note that cs2 is not dp/de, but rather p/e!!!
@@ -2732,7 +2733,7 @@ C----------------------------------------------------------------
       Double Precision Time, Teq
       common /Time/ Time, Teq
       
-      cs2=PEOSL7(ee*Hbarc, Time)/dmax1(abs(ee),zero)/Hbarc ! check dimension?
+      cs2=PEOSL7(ee*Hbarc, TpropHook)/dmax1(abs(ee),zero)/Hbarc ! check dimension?
       A=RSDM0*(1-cs2)+RSPPI
       B=RSDM0*(RSDM0+RSPPI)-RSDM*RSDM
       findEdHook = ee-2*B/dmax1((sqrt(A*A+4*cs2*B)+A), zero)
@@ -2750,8 +2751,8 @@ C----------------------------------------------------------------
       Double Precision PEOSL7
       Double Precision v
 
-      Double Precision :: RSDM0, RSDM, RSPPI, RSee
-      Common /findEdHookData/ RSDM0, RSDM, RSPPI ! M0, M, Pi (see 0510014)
+      Double Precision :: RSDM0, RSDM, RSPPI, RSee, TpropHook
+      Common /findEdHookData/ RSDM0, RSDM, RSPPI, TpropHook ! M0, M, Pi (see 0510014)
 
       Double Precision cstilde2, EOScstilde2 ! energy density from previous iteration, p/e, pressure
       ! Note that cstilde2 is NOT dp/de, but rather p/e!!!
@@ -2765,7 +2766,7 @@ C----------------------------------------------------------------
       common /Time/ Time, Teq
       
       RSee = RSDM0 - v*RSDM
-      cstilde2=EOScstilde2(dmax1(abs(RSee),zero)*Hbarc, Time)!PEOSL7(RSee*Hbarc, Time)/dmax1(abs(RSee),zero)/Hbarc
+      cstilde2=EOScstilde2(dmax1(abs(RSee),zero)*Hbarc, TpropHook)!PEOSL7(RSee*Hbarc, Time)/dmax1(abs(RSee),zero)/Hbarc
       A=RSDM0*(1+cstilde2)+RSPPI
 
       findvHook = v - (2*RSDM)/(A + sqrt(dmax1(A*A
@@ -2788,8 +2789,8 @@ C----------------------------------------------------------------
       Double Precision PEOSL7
       Double Precision v, U0
 
-      Double Precision :: RSDM0, RSDM, RSPPI, RSee
-      Common /findEdHookData/ RSDM0, RSDM, RSPPI ! M0, M, Pi (see 0510014)
+      Double Precision :: RSDM0, RSDM, RSPPI, RSee, TpropHook
+      Common /findEdHookData/ RSDM0, RSDM, RSPPI, TpropHook ! M0, M, Pi (see 0510014)
 
       Double Precision cstilde2, EOScstilde2 ! energy density from previous iteration, p/e, pressure
       ! Note that cstilde2 is NOT dp/de, but rather p/e!!!
@@ -2804,7 +2805,7 @@ C----------------------------------------------------------------
 
       v = sqrt(1 - 1/max(U0, 1d0)**2)
       RSee = RSDM0 - v*RSDM
-      cstilde2=EOScstilde2(dmax1(abs(RSee),zero)*Hbarc,Time)!PEOSL7(RSee*Hbarc, Time)/dmax1(abs(RSee),zero)/Hbarc
+      cstilde2=EOScstilde2(dmax1(abs(RSee),zero)*Hbarc,TpropHook)!PEOSL7(RSee*Hbarc, Time)/dmax1(abs(RSee),zero)/Hbarc
       A=RSDM0*(1+cstilde2)+RSPPI
       v = (2*RSDM)/(A+sqrt(dmax1(A*A-4*cstilde2*RSDM*RSDM, 1D-30))
      &              + 1D-30)

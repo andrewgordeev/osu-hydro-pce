@@ -171,7 +171,7 @@
           Print*, "Error: Invertfunction_binary: no unique solution!"
           Print*, "yL = ", yL, ", yR = ", yR
           Print*, "varL = ", varL, ", varR = ", varR, ", varY = ", varY
-          call exit(1)
+          call exit(101)
       endif
 
       itol = 0

@@ -366,18 +366,24 @@ def main():
     p_T4 = compute_p_T4(T)
     e3p_T4 = e3p_T4(T)
     e_T4 = e3p_T4 + 3*p_T4
-    
     cs2 = CubicSpline(e_orig,p_orig)(e, nu=1)
     cs2[cs2<1e-10] = 1e-10  # Keep cs2 above a minimum threshold, otherwise it goes negative
     cstilde2 = PchipInterpolator(tlat,p_orig/e_orig)(T)
+    p = compute_p_T4(T) * T**4 / HBARC**3
+    s = (e + p)/T    
+    
+    # Nc = 3
+    # Nf = 3
+    # T = np.linspace(1e-10, 0.7, 10**5)
+    # e = np.pi**2 * 1/30. * (2*(Nc*Nc-1) + 3.5*Nc*Nf) * np.ones(T.shape) * T**4 / HBARC**3
+    # p = e/3.
+    # s = (e + p)/T 
+    # cs2 = CubicSpline(e, p)(e, nu=1)
+    # cstilde2 = p/e
 
     if args.plot:
          plot(T, e3p_T4, p_T4, e_T4, cs2, args, hrg_kwargs)
          return
-     
-    p = compute_p_T4(T) * T**4 / HBARC**3
-    s = (e + p)/T    
-
 
     if args.write_bin:
         with open(args.write_bin, 'wb') as f:

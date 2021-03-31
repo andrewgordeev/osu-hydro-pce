@@ -43,13 +43,14 @@
       ! read EOS data from binary file
       open(5, file=find_data_file('eos.dat'), status='old',
      &     access='stream')
-      read(5) EOST0, EOSTend, PEOSdata, SEOSdata, EEOSdata
+      read(5) EOST0, EOSTend, PEOSdata, SEOSdata, EEOSdata, EOScs2data,
+     &     EOScstilde2data 
       close(5)
 
       open(6, file=find_data_file('eos-gluon.dat'), status='old',
      &     access='stream')
       read(6) EOSgluonT0, EOSgluonTend, PEOSgluondata, SEOSgluondata,
-     &     EEOSgluondata
+     &     EEOSgluondata, EOScs2gluondata, EOScstilde2gluondata
       close(6)
      
       ! save temp step size
@@ -267,7 +268,7 @@ C====EOS from table===================================================
       
       e = abs(e)
 
-      PEOSL7 = e/3d0 !fugacity * PEOSL7qcd(e) + (1 - fugacity) * PEOSL7gluon(e)
+      PEOSL7 = fugacity * PEOSL7qcd(e) + (1 - fugacity) * PEOSL7gluon(e)
       
       return
       end      
@@ -437,7 +438,7 @@ C====EOS from table===================================================
 
       e = abs(e)
 
-      SEOSL7 = (4d0/3d0)*e/TEOSL7(e)!fugacity * SEOSL7qcd(e) + (1 - fugacity) * SEOSL7gluon(e)
+      SEOSL7 = fugacity * SEOSL7qcd(e) + (1 - fugacity) * SEOSL7gluon(e)
       
       return
       end
@@ -675,8 +676,9 @@ C====EOS from table===================================================
       
       e = abs(e)
 
-      TEOSL7 = ((30d0/M_PI**2)*(M_HBARC**3)/(2*(3*3-1)+3.5*3*3)*e)
-     &  **(1d0/4d0)!fugacity * TEOSL7qcd(e) + (1 - fugacity) * TEOSL7gluon(e)      
+ !!!!!!     TEOSL7 = ((30d0/M_PI**2)*(M_HBARC**3)/(2*(3*3-1)+3.5*3*3)*e)
+ !!!!!!    &  **(1d0/4d0)
+      TEOSL7 = fugacity * TEOSL7qcd(e) + (1 - fugacity) * TEOSL7gluon(e)      
       
       return
       end
@@ -842,7 +844,7 @@ C====EOS from table===================================================
       
       e = abs(e)
 
-      EOScs2 = 1d0/3d0!fugacity * EOScs2qcd(e) + (1 - fugacity) * EOScs2gluon(e)      
+      EOScs2 = fugacity * EOScs2qcd(e) + (1 - fugacity) * EOScs2gluon(e)      
       
       return
       end
@@ -1008,8 +1010,8 @@ C====EOS from table===================================================
       
       e = abs(e)
 
-      EOScstilde2 = 1d0/3d0!fugacity * EOScstilde2qcd(e) +
-   !  & (1 - fugacity) * EOScstilde2gluon(e)      
+      EOScstilde2 = fugacity * EOScstilde2qcd(e) +
+     & (1 - fugacity) * EOScstilde2gluon(e)      
       
       return
       end

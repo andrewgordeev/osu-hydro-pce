@@ -3,10 +3,14 @@
 import numpy as np
 import h5py
 
-""" Averages over 100,000 trento events and saves the profile as a numpy array to be read by run-hydro.py.
-For trento normalization factor of 13, 100000 Pb Pb events are first run and saved in events13.hdf. The profile is saved as profile13.npy. """
+""" Averages over num_events trento events and saves the profile as a numpy array to be read by run-hydro.py."""
 
-profile = np.zeros([500,500])
+num_events = 50000
+grid_size = 500
+centrality_percent = 0.2
+num_central = int(num_events*centrality_percent)
+
+profile = np.zeros([grid_size,grid_size])
 b = 0
 npart = 0
 mult = 0
@@ -15,7 +19,7 @@ e3 = 0
 e4 = 0
 e5 = 0
 
-bvals = np.zeros(10000)
+bvals = np.zeros(num_events)
 
 with h5py.File('events.hdf','r') as f:
     i = 0
@@ -24,13 +28,13 @@ with h5py.File('events.hdf','r') as f:
         i = i+1
         
 bvals = np.sort(bvals)
-bvalsallowed = bvals[:]
+bvalsallowed = bvals[:num_central]
 
 with h5py.File('events.hdf','r') as f:
     for dset in f.values():
         if dset.attrs['b'] in bvalsallowed:  
             profile += np.array(dset)
-        # b += dset.attrs['b']
+            b += dset.attrs['b']
         # npart += dset.attrs['npart']
         # mult += dset.attrs['mult']
         # e2 += dset.attrs['e2']
@@ -38,8 +42,8 @@ with h5py.File('events.hdf','r') as f:
         # e4 += dset.attrs['e4']
         # e5 += dset.attrs['e5']
         
-profile = profile/10000
-# b = b/100000
+profile = profile/num_central
+b = b/num_central
 # npart = npart/100000
 # mult = mult/100000
 # e2 = e2/100000
@@ -47,4 +51,4 @@ profile = profile/10000
 # e4 = e4/100000
 # e5 = e5/100000
 
-np.save('profiles/profilex15n13p1grid500.npy', profile)
+np.save('profiles/profilex15n13p0grid500central20.npy', profile)

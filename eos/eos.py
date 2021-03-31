@@ -347,6 +347,11 @@ def main():
     T = np.linspace(T[nextrapts], T[-nextrapts - 1], args.nsteps)
     e = CubicSpline(T_orig,e_orig)(T)
     p = compute_p_T4(T) * T**4 / HBARC**3
+    # Nc = 3
+    # Nf = 3
+    # T = np.linspace(1e-10, 0.7, 10**5)
+    # e = np.pi**2 * 1/30. * (2*(Nc*Nc-1) + 3.5*Nc*Nf) * np.ones(T.shape) * T**4 / HBARC**3
+    # p = e/3.
     s = (e + p)/T
     cs2 = CubicSpline(e, p)(e, nu=1)
     cstilde2 = p/e
