@@ -13,6 +13,7 @@ except ImportError:
 
 from scipy.special import expi
 from scipy.interpolate import PchipInterpolator
+from scipy.interpolate import interp1d
 
 import frzout
 
@@ -296,7 +297,7 @@ def main():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     parser.add_argument(
-        '--Tmin', type=float, default=.050,
+        '--Tmin', type=float, default=.004,
         help='minimum temperature'
     )
     parser.add_argument(
@@ -308,7 +309,7 @@ def main():
         help='connection range maximum temperature'
     )
     parser.add_argument(
-        '--Tmax', type=float, default=.600,
+        '--Tmax', type=float, default=1,
         help='maximum temperature'
     )
     parser.add_argument(
@@ -336,16 +337,17 @@ def main():
     hrg_kwargs = dict(species=args.species, res_width=args.res_width)
     
     Tc = 0.270
-    tlat = Tc*np.array([0.1, 0.7, 0.74, 0.78, 0.82, 0.86, 0.9, 0.94, 0.98, 1, 1.02, 1.06, 1.10, 1.14, 1.18, 1.22, 1.26, 1.30, 1.34, 1.38, 1.42, 1.46, 1.5, 2, 2.5, 3, 3.5, 4.0, 4.5, 5, 6, 7, 8, 9, 10, 20, 30, 40, 50, 60, 80, 100, 200, 300, 400, 500, 600, 800, 1000])
-    Ilat = np.array([0, .0104, .0162, .0232, .0318, .0433, .0594, .0859, .1433, 1.0008, 2.078, 2.4309, 2.4837, 2.4309, 2.3426, 2.2342, 2.1145, 1.998, 1.8867, 1.7809, 1.6810, 1.5872, 1.4995, 0.8038, 0.5057, 0.3589, 0.2736, 0.2207, 0.1855, 0.1606, 0.1266, 0.1050, 0.0903, 0.0798, 0.0720, 0.0375, 0.0265, 0.0216, 0.0191, 0.0174, 0.0154, 0.0142, 0.0112, 0.01, 0.0091, 0.0085, 0.0080, 0.0073, 0.0068])
-   # plat = np.array([0.0015, 0.0023, 0.0033, 0.0046, 0.0064, 0.0087, 0.0118, 0.0164, 0.0222, 0.0571, 0.1455, 0.237, 0.325, 0.4074, 0.4837, 0.5539, 0.6181, 0.677, 0.7309, 0.7804, 0.8258, 0.8675, 1.189, 1.3319, 1.4098, 1.4582, 1.491, 1.5149, 1.533, 1.5591, 1.5768, 1.5898, 1.5998, 1.6078, 1.6444, 1.6572, 1.6641, 1.6686, 1.672, 1.6767, 1.68, 1.6887, 1.693, 1.6958, 1.6977, 1.6992, 1.7014, 1.703])
+    tlat = Tc*np.array([1e-10, 0.001, 0.003, 0.005, 0.007, 0.009, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.74, 0.78, 0.82, 0.86, 0.9, 0.94, 0.98, 1, 1.02, 1.06, 1.10, 1.14, 1.18, 1.22, 1.26, 1.30, 1.34, 1.38, 1.42, 1.46, 1.5, 2, 2.5, 3, 3.5, 4.0, 4.5, 5, 6, 7, 8, 9, 10, 20, 30, 40, 50, 60, 80, 100, 200, 300, 400, 500, 600, 800, 1000])
+    Ilat = np.array([0, 0.00015, 0.00045, 0.00075, 0.00105, 0.0013, 0.0015, 0.0030, 0.0045, 0.006, 0.0075, 0.009, .0104, .0162, .0232, .0318, .0433, .0594, .0859, .1433, 1.0008, 2.078, 2.4309, 2.4837, 2.4309, 2.3426, 2.2342, 2.1145, 1.998, 1.8867, 1.7809, 1.6810, 1.5872, 1.4995, 0.8038, 0.5057, 0.3589, 0.2736, 0.2207, 0.1855, 0.1606, 0.1266, 0.1050, 0.0903, 0.0798, 0.0720, 0.0375, 0.0265, 0.0216, 0.0191, 0.0174, 0.0154, 0.0142, 0.0112, 0.01, 0.0091, 0.0085, 0.0080, 0.0073, 0.0068])
+    plat = np.array([0, 0.0000021, 0.0000064, 0.0000107, 0.000015, 0.0000193, 0.00021, 0.00043, 0.00064, 0.00086, 0.00107, 0.00129, 0.0015, 0.0023, 0.0033, 0.0046, 0.0064, 0.0087, 0.0118, 0.0164, 0.0222, 0.0571, 0.1455, 0.237, 0.325, 0.4074, 0.4837, 0.5539, 0.6181, 0.677, 0.7309, 0.7804, 0.8258, 0.8675, 1.189, 1.3319, 1.4098, 1.4582, 1.491, 1.5149, 1.533, 1.5591, 1.5768, 1.5898, 1.5998, 1.6078, 1.6444, 1.6572, 1.6641, 1.6686, 1.672, 1.6767, 1.68, 1.6887, 1.693, 1.6958, 1.6977, 1.6992, 1.7014, 1.703])
         
     e3p_T4 = PchipInterpolator(tlat,Ilat)
-    delta_p_T4_spline = CubicSpline(tlat, Ilat/tlat).antiderivative()
+    delta_p_T4_spline = PchipInterpolator(tlat, Ilat/tlat).antiderivative()
     p_T4_0 = HRGEOS(np.array([args.Tmin]), **hrg_kwargs).p_T4()[0]
 
     def compute_p_T4(T):
         p_T4 = delta_p_T4_spline(T)
+        #p_T4 = PchipInterpolator(tlat,plat)(T)
         p_T4 += p_T4_0
         return p_T4
 
@@ -354,24 +356,36 @@ def main():
 
     # energy density at original temperature points
     e_orig = e_T4 * tlat**4 / HBARC**3
-    p_orig = p_T4 * tlat**4 / HBARC**3
+    p_orig = plat * tlat**4 / HBARC**3
 
     # compute thermodynamic quantities at evenly-spaced energy density points
     # as required by osu-hydro
-    T = np.linspace(tlat[0], tlat[-24], args.nsteps)
-    e = PchipInterpolator(tlat, e_orig)(T)
+    e = np.linspace((e_orig[0]/HBARC)**0.25, (e_orig[-20]/HBARC)**0.25, args.nsteps)
+    T = PchipInterpolator(e_orig,tlat)(e**4*HBARC)
+    #T = np.linspace(args.Tmin, args.Tmax, args.nsteps)
+    #e = PchipInterpolator(tlat, e_orig)(T)
     Tsort = T.argsort()
     T = T[Tsort]
     # e = e[Tsort]
     p_T4 = compute_p_T4(T)
     e3p_T4 = e3p_T4(T)
     e_T4 = e3p_T4 + 3*p_T4
-    cs2 = CubicSpline(e_orig,p_orig)(e, nu=1)
-    cs2[cs2<1e-10] = 1e-10  # Keep cs2 above a minimum threshold, otherwise it goes negative
-    cstilde2 = PchipInterpolator(tlat,p_orig/e_orig)(T)
+    cs2 = CubicSpline(e_orig,p_orig)(e**4*HBARC, nu=1)
+    #cs2old = np.copy(cs2)
+    #cs2[cs2<1e-10] = 1e-10  # Keep cs2 above a minimum threshold, otherwise it goes negative
+    #cstilde2 = PchipInterpolator(tlat,p_orig/e_orig)(T)
+    #cs2new = np.copy(cs2old)
+    #for i in range(12415,14370):
+    #    cs2new[i] = 1e-10 + (cs2old[i]-cs2old.min())*(cs2old[14370]-1e-10)
     p = compute_p_T4(T) * T**4 / HBARC**3
-    s = (e + p)/T    
+    #s = (e + p)/T    
+    s = CubicSpline(T,p)(T,nu=1)
     
+    """ Alternative version for consistency with near zero cs2 """
+    #p = PchipInterpolator(e**4*HBARC,cs2).antiderivative()(e**4*HBARC)-PchipInterpolator(e**4*HBARC,cs2).antiderivative()(e[-1]**4*HBARC) + p[-1]
+    #s = (e**4*HBARC + p)/T
+    
+    """ Conformal EoS """
     # Nc = 3
     # Nf = 3
     # T = np.linspace(1e-10, 0.7, 10**5)
